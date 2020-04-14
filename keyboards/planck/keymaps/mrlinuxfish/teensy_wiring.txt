@@ -1,0 +1,16 @@
+Teensy pin out
+Top
+R,  O,  Y,  G,  B,  V,  R,  O,  Y,  G,  B,  V
+D7, B4, D6, D4, F7, F6, F5, F4, C7, B0, F0, F1
+                                                G  D0
+                                                BL D5
+ B,   BL                                        W  B5
+ RST, GND                                       GR B6
+
+lighting:
+	layer 0: D3 (+ white, - black, 220 ohm resistor)
+	layer 1: D2 (+ grey, - black, 220 ohm resistor)
+	layer 2: D1 (+ white, - black, 220 ohm resistor)
+	layer 3: B3 (+ grey, - black, 220 ohm resistor)
+	caps lock: C6 (+ grey, - black, 220 ohm resistor)
+	backlight (not used): E6
