@@ -234,19 +234,19 @@ void oled_task_user(void) {
 #ifdef ENCODER_ENABLE
 void encoder_update_user(uint8_t index, bool clockwise) {
     if (index == 0) {
-        // Volume control
+        // Scroll through active workspaces i3
         if (clockwise) {
-            tap_code(KC_VOLU);
+            tap_code16(G(C(S((KC_LEFT)))));
         } else {
-            tap_code(KC_VOLD);
+            tap_code16(G(C(S((KC_RGHT)))));
         }
     }
     else if (index == 1) {
-        // Page up/Page down
+        // Scroll through unread Discord channels
         if (clockwise) {
-            tap_code(KC_PGDN);
+            tap_code16(S(A(KC_DOWN)));
         } else {
-            tap_code(KC_PGUP);
+            tap_code16(S(A(KC_UP)));
         }
     }
 }
