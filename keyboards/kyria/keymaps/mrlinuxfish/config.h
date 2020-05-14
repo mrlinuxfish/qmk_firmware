@@ -17,16 +17,17 @@
 #pragma once
 
 // Fix problems with fast typing and homerow mods
-#define TAPPING_TERM 150
+#define TAPPING_TERM 200
 #define PERMISSIVE_HOLD
 #define IGNORE_MOD_TAP_INTERRUPT
-#define TAPPING_FORCE_HOLD
+#define TAPPING_FORCE_HOLD_PER_KEY
 
 // Recommended for heavy chording.
 #define QMK_KEYS_PER_SCAN 4
 
 #ifdef OLED_DRIVER_ENABLE
   #define OLED_DISPLAY_128X64
+  #define OLED_TIMEOUT 60000
 #endif
 
 #ifdef RGBLIGHT_ENABLE

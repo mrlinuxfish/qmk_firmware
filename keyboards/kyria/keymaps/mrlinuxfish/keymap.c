@@ -146,6 +146,28 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     ),
 };
 
+// Disabling permissive hold for home row mods.
+uint16_t get_permissive_hold(uint16_t keycode, keyrecord_t *record) { // {{{
+    switch (keycode) {
+        case SHFT_T:
+        case SHFT_N:
+        case SFT_ENT:
+        case CTRL_S:
+        case CTRL_E:
+        case ALT_R:
+        case ALT_I:
+        case AGR_X:
+        case AGR_DOT:
+        case GUI_A:
+        case GUI_O:
+            // This actually *disables* the permissive hold for these keys.
+            // See issue https://github.com/qmk/qmk_firmware/issues/8999
+            return true;
+        default:
+            return false;
+    }
+}
+
 /* layer_state_t layer_state_set_user(layer_state_t state) {
  *     return update_tri_layer_state(state, _NSL, _FUNL, _ADJUST);
  * }
