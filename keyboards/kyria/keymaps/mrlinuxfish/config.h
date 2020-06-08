@@ -17,7 +17,7 @@
 #pragma once
 
 // Fix problems with fast typing and homerow mods
-#define TAPPING_TERM 200
+#define TAPPING_TERM 150
 #define PERMISSIVE_HOLD
 #define IGNORE_MOD_TAP_INTERRUPT
 #define TAPPING_FORCE_HOLD_PER_KEY
@@ -31,7 +31,8 @@
 #endif
 
 #ifdef RGBLIGHT_ENABLE
-  #define RGBLIGHT_ANIMATIONS
+  #define RGBLIGHT_EFFECT_RAINBOW_SWIRL
+  #define RGBLIGHT_EFFECT_BREATHING
   #define RGBLIGHT_HUE_STEP 8
   #define RGBLIGHT_SAT_STEP 8
   #define RGBLIGHT_VAL_STEP 8
