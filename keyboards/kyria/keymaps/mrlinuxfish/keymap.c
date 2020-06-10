@@ -186,7 +186,7 @@ uint16_t get_permissive_hold(uint16_t keycode, keyrecord_t *record) { // {{{
 #define TAP_FRAMES 2
 #define TAP_SPEED 40 // above this wpm value typing animation to triggere
 
-#define ANIM_FRAME_DURATION 200 // how long each frame lasts in ms
+#define ANIM_FRAME_DURATION 150 // how long each frame lasts in ms
 // #define SLEEP_TIMER 60000 // should sleep after this period of 0 wpm, needs fixing
 #define ANIM_SIZE 636 // number of bytes in array, minimize for adequate firmware size, max is 1024
 
