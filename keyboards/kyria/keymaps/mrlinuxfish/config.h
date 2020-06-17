@@ -41,5 +41,11 @@
 
 // If you are using an Elite C rev3 on the slave side, uncomment the lines below:
 #define SPLIT_USB_DETECT
-#define SPLIT_USB_TIMEOUT 1000
+#define SPLIT_USB_TIMEOUT 2500
 #define NO_USB_STARTUP_CHECK
+#define MASTER_LEFT
+
+// Disable unnecessary features
+#define NO_ACTION_MACRO
+#define NO_ACTION_FUNCTION
+#define NO_ACTION_ONESHOT
