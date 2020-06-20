@@ -197,7 +197,7 @@ bool led_update_kb(led_t led_state) {
         // This behavior depends on whether the LED is between the pin
         // and VCC or the pin and GND.
         // writePin(B0, !led_state.num_lock);
-        // writePin(C6, !led_state.caps_lock);
+        // writePin(B2, !led_state.caps_lock);
         // writePin(B2, !led_state.scroll_lock);
         // writePin(B3, !led_state.compose);
         // writePin(B4, !led_state.kana);
