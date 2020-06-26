@@ -30,7 +30,7 @@ char wpm_str[10];
 
 /* Add definitions for MT and LT */
 #define SHFT_T MT(MOD_LSFT, KC_T)
-#define SHFT_N MT(MOD_LSFT, KC_N)
+#define SHFT_N MT(MOD_RSFT, KC_N)
 #define SFT_ENT MT(MOD_LSFT, KC_ENT)
 #define CTRL_S MT(MOD_LCTL, KC_S)
 #define CTRL_E MT(MOD_LCTL, KC_E)
