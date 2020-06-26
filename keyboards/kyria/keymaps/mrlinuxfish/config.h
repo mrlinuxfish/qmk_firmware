@@ -17,7 +17,7 @@
 #pragma once
 
 // Fix problems with fast typing and homerow mods
-#define TAPPING_TERM 150
+#define TAPPING_TERM 125
 #define PERMISSIVE_HOLD
 #define IGNORE_MOD_TAP_INTERRUPT
 #define TAPPING_FORCE_HOLD_PER_KEY
