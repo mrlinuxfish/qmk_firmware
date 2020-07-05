@@ -43,7 +43,7 @@
 #define SPLIT_USB_DETECT
 #define SPLIT_USB_TIMEOUT 2500
 #define NO_USB_STARTUP_CHECK
-#define MASTER_LEFT
+#define EE_HANDS
 
 // Disable unnecessary features
 #define NO_ACTION_MACRO
