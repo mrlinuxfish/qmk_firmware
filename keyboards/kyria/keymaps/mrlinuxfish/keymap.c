@@ -150,7 +150,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 // Disabling permissive hold for home row mods.
-uint16_t get_permissive_hold(uint16_t keycode, keyrecord_t *record) { // {{{
+bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) { // {{{
     switch (keycode) {
         case SHFT_T:
         case SHFT_N:

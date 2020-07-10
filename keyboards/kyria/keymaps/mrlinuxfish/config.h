@@ -18,9 +18,9 @@
 
 // Fix problems with fast typing and homerow mods
 #define TAPPING_TERM 125
-#define PERMISSIVE_HOLD
+#define PERMISSIVE_HOLD_PER_KEY
 #define IGNORE_MOD_TAP_INTERRUPT
-#define TAPPING_FORCE_HOLD_PER_KEY
+#define TAPPING_FORCE_HOLD
 
 // Recommended for heavy chording.
 #define QMK_KEYS_PER_SCAN 4
