@@ -15,8 +15,8 @@
  */
 
 #pragma once
-//#define COMBO_ALLOW_ACTION_KEYS
-//#define COMBO_VARIABLE_LEN
+#define COMBO_ALLOW_ACTION_KEYS
+#define COMBO_VARIABLE_LEN
 
 // Fix problems with fast typing and homerow mods
 #define TAPPING_TERM 125

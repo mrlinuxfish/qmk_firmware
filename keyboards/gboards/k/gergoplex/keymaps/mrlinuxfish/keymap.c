@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include QMK_KEYBOARD_H
+#include "g/keymap_combo.h"
 
 enum layers {
     _COLEMAK = 0,
