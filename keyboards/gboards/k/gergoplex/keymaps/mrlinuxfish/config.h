@@ -22,7 +22,7 @@
 #define TAPPING_TERM 125
 #define PERMISSIVE_HOLD_PER_KEY
 #define IGNORE_MOD_TAP_INTERRUPT
-#define TAPPING_FORCE_HOLD
+#define TAPPING_FORCE_HOLD_PER_KEY
 
 // Recommended for heavy chording.
 #define QMK_KEYS_PER_SCAN 4
