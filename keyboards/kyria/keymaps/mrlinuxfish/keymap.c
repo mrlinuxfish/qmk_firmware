@@ -336,22 +336,23 @@ static void render_status(void) {
 
     switch (get_highest_layer(default_layer_state)) {
         case _GAME:
-            oled_write_P(PSTR("Qwerty\n"), false);
+            oled_write_P(PSTR("Qwerty"), false);
             break;
         default:
-            oled_write_P(PSTR("Colemak DHm\n"), false);
+            oled_write_P(PSTR("Colemak DHm"), false);
     }
 #ifdef AUTO_SHIFT_ENABLE
     // Auto shift state
     switch (get_autoshift_state()) {
         case true:
-            oled_write_P(PSTR("Autoshift on\n"), false);
+            oled_write_P(PSTR(" Auto"), false);
         default:
             oled_write_P(PSTR("\n"), false);
     }
 #else
     oled_write_P(PSTR("\n"), false);
 #endif
+    oled_write_P(PSTR("\n"), false);
     // Host Keyboard Layer Status
     oled_write_P(PSTR("Layer: "), false);
     switch (get_highest_layer(layer_state)) {
@@ -400,6 +401,21 @@ void oled_task_user(void) {
         sprintf(wpm_str, "       WPM: %03d", get_current_wpm());
         oled_write(wpm_str, false);
     }
+}
+#endif
+
+#ifdef AUTO_SHIFT_ENABLE
+// Disable auto shift by default on game layer
+layer_state_t default_layer_state_set_user(layer_state_t state) {
+    switch (get_highest_layer(state)) {
+    case _GAME:
+        autoshift_disable();
+        break;
+    default:
+        autoshift_enable();
+        break;
+    }
+return state;
 }
 #endif
 
