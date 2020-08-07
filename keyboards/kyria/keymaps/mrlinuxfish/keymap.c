@@ -15,6 +15,7 @@
  */
 #include QMK_KEYBOARD_H
 #include <stdio.h>
+#include "process_auto_shift.h"
 
 enum layers {
     _COLEMAK = 0,
@@ -26,8 +27,6 @@ enum layers {
     _NSL,
     _FUNL
 };
-
-char wpm_str[10];
 
 /* Add definitions for MT and LT */
 #define SHFT_T MT(MOD_LSFT, KC_T)
@@ -77,7 +76,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
     [_MEDR] = LAYOUT( \
  //,-----------------------------------------------------.                                      ,-----------------------------------------------------.
-     _______, _______,    GAME, COLEMAK, _______, _______,                                        RGB_TOG, RGB_MOD, RGB_HUI, RGB_SAI, RGB_VAI, _______,\
+     _______, _______,    GAME, COLEMAK, KC_ASTG, _______,                                        RGB_TOG, RGB_MOD, RGB_HUI, RGB_SAI, RGB_VAI, _______,\
  //|--------+--------+--------+--------+--------+--------|                                      |--------+--------+--------+--------+--------+--------|
      _______, KC_LGUI, KC_LALT, KC_LCTL, KC_LSFT, _______,                                        _______, KC_MPRV, KC_VOLD, KC_VOLU, KC_MNXT, _______,\
  //|--------+--------+--------+--------+--------+--------+-----------------.  ,-----------------+--------+--------+--------+--------+--------+--------|
@@ -342,8 +341,17 @@ static void render_status(void) {
         default:
             oled_write_P(PSTR("Colemak DHm\n"), false);
     }
+#ifdef AUTO_SHIFT_ENABLE
+    // Auto shift state
+    switch (get_autoshift_state()) {
+        case true:
+            oled_write_P(PSTR("Autoshift on\n"), false);
+        default:
+            oled_write_P(PSTR("\n"), false);
+    }
+#else
     oled_write_P(PSTR("\n"), false);
-
+#endif
     // Host Keyboard Layer Status
     oled_write_P(PSTR("Layer: "), false);
     switch (get_highest_layer(layer_state)) {

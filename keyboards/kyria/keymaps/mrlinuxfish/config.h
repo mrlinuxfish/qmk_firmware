@@ -16,6 +16,10 @@
 
 #pragma once
 
+// Add retro shift and auto shift
+#define RETRO_SHIFT
+#define NO_AUTO_SHIFT_SPECIAL
+
 // Fix problems with fast typing and homerow mods
 #define TAPPING_TERM 125
 #define PERMISSIVE_HOLD_PER_KEY
