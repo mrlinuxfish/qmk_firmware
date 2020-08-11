@@ -58,8 +58,12 @@
 #define GEMINI_STATE_SIZE 6
 #define MAX_STATE_SIZE GEMINI_STATE_SIZE
 
+// The currently-pressed keys.
 static uint8_t state[MAX_STATE_SIZE] = {0};
+// The chord to be sent.
 static uint8_t chord[MAX_STATE_SIZE] = {0};
+// Part of the last chord, not yet released.
+static uint8_t ignore[MAX_STATE_SIZE] = {0};
 static int8_t pressed = 0;
 static steno_mode_t mode;
 
@@ -75,12 +79,15 @@ static const uint8_t boltmap[64] PROGMEM = {
 static void steno_clear_state(void) {
   memset(state, 0, sizeof(state));
   memset(chord, 0, sizeof(chord));
+  memset(ignore, 0, sizeof(ignore));
 }
 
 static void send_steno_state(uint8_t size, bool send_empty) {
   for (uint8_t i = 0; i < size; ++i) {
     if (chord[i] || send_empty) {
+#ifdef VIRTSER_ENABLE
       virtser_send(chord[i]);
+#endif
     }
   }
 }
@@ -115,7 +122,9 @@ static void send_steno_chord(void) {
     switch(mode) {
       case STENO_MODE_BOLT:
         send_steno_state(BOLT_STATE_SIZE, false);
+#ifdef VIRTSER_ENABLE
         virtser_send(0); // terminating byte
+#endif
         break;
       case STENO_MODE_GEMINI:
         chord[0] |= 0x80; // Indicate start of packet
@@ -123,7 +132,6 @@ static void send_steno_chord(void) {
         break;
     }
   }
-  steno_clear_state();
 }
 
 uint8_t *steno_get_state(void) {
@@ -135,29 +143,38 @@ uint8_t *steno_get_chord(void) {
 }
 
 static bool update_state_bolt(uint8_t key, bool press) {
+  bool send = false;
   uint8_t boltcode = pgm_read_byte(boltmap + key);
   if (press) {
     state[TXB_GET_GROUP(boltcode)] |= boltcode;
-    chord[TXB_GET_GROUP(boltcode)] |= boltcode;
   } else {
+    if (!(ignore[TXB_GET_GROUP(boltcode)] & boltcode)) {
+      send = true;
+    }
     state[TXB_GET_GROUP(boltcode)] &= ~boltcode;
+    ignore[TXB_GET_GROUP(boltcode)] &= ~boltcode;
   }
-  return false;
+  return send;
 }
 
 static bool update_state_gemini(uint8_t key, bool press) {
+  bool send = false;
   int idx = key / 7;
   uint8_t bit = 1 << (6 - (key % 7));
   if (press) {
     state[idx] |= bit;
-    chord[idx] |= bit;
   } else {
+    if (!(ignore[idx] & bit)) {
+      send = true;
+    }
     state[idx] &= ~bit;
+    ignore[idx] &= ~bit;
   }
-  return false;
+  return send;
 }
 
 bool process_steno(uint16_t keycode, keyrecord_t *record) {
+  bool send = false;
   switch (keycode) {
     case QK_STENO_BOLT:
       if (!process_steno_user(keycode, record)) {
@@ -181,12 +198,14 @@ bool process_steno(uint16_t keycode, keyrecord_t *record) {
       if (!process_steno_user(keycode, record)) {
         return false;
       }
+      // The chord to send is the previous state (before we released the first key).
+      memcpy(chord, state, sizeof(state));
       switch(mode) {
         case STENO_MODE_BOLT:
-          update_state_bolt(keycode - QK_STENO, IS_PRESSED(record->event));
+          send = update_state_bolt(keycode - QK_STENO, IS_PRESSED(record->event));
           break;
         case STENO_MODE_GEMINI:
-          update_state_gemini(keycode - QK_STENO, IS_PRESSED(record->event));
+          send = update_state_gemini(keycode - QK_STENO, IS_PRESSED(record->event));
           break;
       }
       // allow postprocessing hooks
@@ -195,10 +214,15 @@ bool process_steno(uint16_t keycode, keyrecord_t *record) {
           ++pressed;
         } else {
           --pressed;
-          if (pressed <= 0) {
+          if (pressed < 0) {
             pressed = 0;
-            send_steno_chord();
           }
+        }
+        if (send) {
+          // Releasing the remaining keys should NOT send more chords
+          // (until they have been released and pressed again).
+          memcpy(ignore, state, sizeof(state));
+          send_steno_chord();
         }
       }
       return false;
