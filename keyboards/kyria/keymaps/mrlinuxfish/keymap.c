@@ -14,6 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include QMK_KEYBOARD_H
+#ifdef COMBO_ENABLE
+#include "g/keymap_combo.h"
+#endif
+#include "keymap.h"
 #include <stdio.h>
 #include "process_auto_shift.h"
 
@@ -27,27 +31,6 @@ enum layers {
     _NSL,
     _FUNL
 };
-
-/* Add definitions for MT and LT */
-#define SHFT_T MT(MOD_LSFT, KC_T)
-#define SHFT_N MT(MOD_RSFT, KC_N)
-#define SFT_ENT MT(MOD_LSFT, KC_ENT)
-#define CTRL_S MT(MOD_LCTL, KC_S)
-#define CTRL_E MT(MOD_LCTL, KC_E)
-#define ALT_R MT(MOD_LALT, KC_R)
-#define ALT_I MT(MOD_LALT, KC_I)
-#define AGR_X MT(MOD_RALT, KC_X)
-#define AGR_DOT MT(MOD_RALT, KC_DOT)
-#define GUI_A MT(MOD_LGUI, KC_A)
-#define GUI_O MT(MOD_LGUI, KC_O)
-#define MED_ESC LT(_MEDR, KC_ESC)
-#define NAV_SPC LT(_NAVR, KC_SPC)
-#define MOS_TAB LT(_MOUR, KC_TAB)
-#define SYM_ENT LT(_NSSL, KC_ENT)
-#define NUM_BSC LT(_NSL, KC_BSPC)
-#define FN_DEL LT(_FUNL, KC_DEL)
-#define COLEMAK DF(_COLEMAK)
-#define GAME DF(_GAME)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_COLEMAK] = LAYOUT( \
