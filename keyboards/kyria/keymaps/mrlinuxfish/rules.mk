@@ -3,9 +3,13 @@ ENCODER_ENABLE = yes       # ENables the use of one or more encoders
 RGBLIGHT_ENABLE = yes      # Enable keyboard RGB underglow
 MOUSEKEY_ENABLE = no       # Mouse keys
 EXTRAKEY_ENABLE = yes      # Audio control and System control
-//BOOTMAGIC_ENABLE = lite    # Bootmagic lite (only reset)
+# BOOTMAGIC_ENABLE = lite    # Bootmagic lite (only reset)
 WPM_ENABLE = yes           # Allows the keyboard to display wpm
-//AUTO_SHIFT_ENABLE = yes    # Turn on autoshift
+
+# Autoshift and combos do not play nicely with homerow mods. Only one should be
+# enabled at a time
+# AUTO_SHIFT_ENABLE = yes    # Turn on autoshift
+
 VPATH  +=  keyboards/gboards/
 EXTRAFLAGS=-DCOMBO_VARIABLE_LEN
 COMBO_ENABLE=yes

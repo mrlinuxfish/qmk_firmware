@@ -17,10 +17,12 @@
 #pragma once
 
 // Add retro shift and auto shift
-#define RETRO_SHIFT 500
-#define AUTO_SHIFT_TIMEOUT 175
-#define NO_AUTO_SHIFT_SPECIAL
-#define NO_AUTO_SHIFT_NUMERIC
+#ifdef AUTO_SHIFT_ENABLE
+  #define RETRO_SHIFT 500
+  #define AUTO_SHIFT_TIMEOUT 175
+  #define NO_AUTO_SHIFT_SPECIAL
+  #define NO_AUTO_SHIFT_NUMERIC
+#endif
 
 // Fix problems with fast typing and homerow mods
 #define TAPPING_TERM 125

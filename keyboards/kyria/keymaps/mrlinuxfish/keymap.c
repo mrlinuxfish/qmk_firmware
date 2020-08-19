@@ -15,11 +15,15 @@
  */
 #include QMK_KEYBOARD_H
 #ifdef COMBO_ENABLE
-#include "g/keymap_combo.h"
+  #include "g/keymap_combo.h"
 #endif
+
 #include "keymap.h"
 #include <stdio.h>
-#include "process_auto_shift.h"
+
+#ifdef AUTO_SHIFT_ENABLE
+  #include "process_auto_shift.h"
+#endif
 
 enum layers {
     _COLEMAK = 0,
