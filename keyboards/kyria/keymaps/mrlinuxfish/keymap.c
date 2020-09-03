@@ -378,7 +378,7 @@ static void render_status(void) {
     oled_write_P(IS_LED_ON(led_usb_state, USB_LED_SCROLL_LOCK) ? PSTR("SCRLCK ") : PSTR("       "), false);
 }
 
-char wpm_str[9];
+char wpm_str[10];
 void oled_task_user(void) {
     if (is_keyboard_master()) {
         render_status();
