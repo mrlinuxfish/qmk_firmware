@@ -378,14 +378,14 @@ static void render_status(void) {
     oled_write_P(IS_LED_ON(led_usb_state, USB_LED_SCROLL_LOCK) ? PSTR("SCRLCK ") : PSTR("       "), false);
 }
 
-char wpm_str[16];
+char wpm_str[9];
 void oled_task_user(void) {
     if (is_keyboard_master()) {
         render_status();
     } else {
         render_anim();
-        oled_set_cursor(0,6);
-        sprintf(wpm_str, "       WPM: %03d", get_current_wpm());
+        oled_set_cursor(7,6);
+        sprintf(wpm_str, "WPM: %03d", get_current_wpm());
         oled_write(wpm_str, false);
     }
 }
