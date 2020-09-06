@@ -14,7 +14,7 @@
 #define LK       STN(5)
 #define LP       STN(6)
 #define LW       STN(7)
-#define LH       STN(8)       
+#define LH       STN(8)
 #define LR       STN(9)
 #define ST1      STN(10)
 #define ST2      STN(11)
