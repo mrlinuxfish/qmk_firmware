@@ -14,7 +14,7 @@
 *.map
 *.sym
 *.swp
-tags
+*tags
 *~
 build/
 .build/
