@@ -224,6 +224,64 @@ void process_record_handler(keyrecord_t *record) {
     process_action(record, action);
 }
 
+#ifdef BILATERAL_COMBINATIONS
+static struct {
+    bool active;
+    uint8_t code;
+    uint8_t tap;
+    uint8_t mods;
+    bool left;
+} bilateral_combinations = { false };
+
+bool bilateral_combinations_left(keypos_t key) {
+#    ifdef SPLIT_KEYBOARD
+    return key.row < MATRIX_ROWS / 2;
+#    else
+    if (MATRIX_COLS > MATRIX_ROWS) {
+        return key.row < MATRIX_COLS / 2;
+    } else {
+        return key.row < MATRIX_ROWS / 2;
+    }
+#    endif
+}
+
+void bilateral_combinations_hold(uint8_t code, uint8_t tap, uint8_t mods, keypos_t key) {
+#    ifdef BILATERAL_COMBINATIONS_DEBUG_ALL
+    print("BILATERAL_COMBINATIONS: hold\n");
+#    endif
+    bilateral_combinations.active = true;
+    bilateral_combinations.code = code;
+    bilateral_combinations.tap = tap;
+    bilateral_combinations.mods = mods;
+    bilateral_combinations.left = bilateral_combinations_left(key);
+}
+
+void bilateral_combinations_release(uint8_t code) {
+#    ifdef BILATERAL_COMBINATIONS_DEBUG_ALL
+    print("BILATERAL_COMBINATIONS: release\n");
+#    endif
+    if (bilateral_combinations.active && (code == bilateral_combinations.code)) {
+        bilateral_combinations.active = false;
+    }
+}
+
+void bilateral_combinations_tap(keypos_t key) {
+#    ifdef BILATERAL_COMBINATIONS_DEBUG_ALL
+    print("BILATERAL_COMBINATIONS: tap\n");
+#    endif
+    if (bilateral_combinations.active) {
+        if (bilateral_combinations_left(key) == bilateral_combinations.left) {
+#    if defined (BILATERAL_COMBINATIONS_DEBUG_ALL) || defined (BILATERAL_COMBINATIONS_DEBUG_EVENT)
+            print("BILATERAL_COMBINATIONS: change\n");
+#    endif
+            unregister_mods(bilateral_combinations.mods);
+            tap_code(bilateral_combinations.tap);
+            bilateral_combinations.active = false;
+        }
+    }
+}
+#endif
+
 /** \brief Take an action and processes it.
  *
  * FIXME: Needs documentation.
@@ -275,6 +333,9 @@ void process_action(keyrecord_t *record, action_t action) {
                     }
                     send_keyboard_report();
                 }
+#ifdef BILATERAL_COMBINATIONS
+                bilateral_combinations_tap(event.key);
+#endif
                 register_code(action.key.code);
             } else {
                 unregister_code(action.key.code);
@@ -362,12 +423,18 @@ void process_action(keyrecord_t *record, action_t action) {
                             } else
 #    endif
                             {
+#    ifdef BILATERAL_COMBINATIONS
+                                bilateral_combinations_tap(event.key);
+#    endif
                                 dprint("MODS_TAP: Tap: register_code\n");
                                 register_code(action.key.code);
                             }
                         } else {
                             dprint("MODS_TAP: No tap: add_mods\n");
                             register_mods(mods);
+#    ifdef BILATERAL_COMBINATIONS
+                            bilateral_combinations_hold(action.key.code, action.layer_tap.code, mods, event.key);
+#    endif
                         }
                     } else {
                         if (tap_count > 0) {
@@ -381,6 +448,9 @@ void process_action(keyrecord_t *record, action_t action) {
                         } else {
                             dprint("MODS_TAP: No tap: add_mods\n");
                             unregister_mods(mods);
+#    ifdef BILATERAL_COMBINATIONS
+                            bilateral_combinations_release(action.key.code);
+#    endif
                         }
                     }
                     break;
@@ -572,6 +642,9 @@ void process_action(keyrecord_t *record, action_t action) {
                     /* tap key */
                     if (event.pressed) {
                         if (tap_count > 0) {
+#        ifdef BILATERAL_COMBINATIONS
+                            bilateral_combinations_tap(event.key);
+#        endif
                             dprint("KEYMAP_TAP_KEY: Tap: register_code\n");
                             register_code(action.layer_tap.code);
                         } else {
