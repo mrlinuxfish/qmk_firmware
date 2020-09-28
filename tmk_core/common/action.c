@@ -253,9 +253,7 @@ bool bilateral_combinations_left(keypos_t key) {
 }
 
 void bilateral_combinations_hold(uint8_t code, uint8_t tap, uint8_t mods, keypos_t key) {
-#    ifdef BILATERAL_COMBINATIONS_DEBUG_ALL
-    print("BILATERAL_COMBINATIONS: hold\n");
-#    endif
+    dprint("BILATERAL_COMBINATIONS: hold\n");
     bilateral_combinations.active = true;
     bilateral_combinations.code = code;
     bilateral_combinations.tap = tap;
@@ -264,23 +262,17 @@ void bilateral_combinations_hold(uint8_t code, uint8_t tap, uint8_t mods, keypos
 }
 
 void bilateral_combinations_release(uint8_t code) {
-#    ifdef BILATERAL_COMBINATIONS_DEBUG_ALL
-    print("BILATERAL_COMBINATIONS: release\n");
-#    endif
+    dprint("BILATERAL_COMBINATIONS: release\n");
     if (bilateral_combinations.active && (code == bilateral_combinations.code)) {
         bilateral_combinations.active = false;
     }
 }
 
 void bilateral_combinations_tap(keypos_t key) {
-#    ifdef BILATERAL_COMBINATIONS_DEBUG_ALL
-    print("BILATERAL_COMBINATIONS: tap\n");
-#    endif
+    dprint("BILATERAL_COMBINATIONS: tap\n");
     if (bilateral_combinations.active) {
         if (bilateral_combinations_left(key) == bilateral_combinations.left) {
-#    if defined (BILATERAL_COMBINATIONS_DEBUG_ALL) || defined (BILATERAL_COMBINATIONS_DEBUG_EVENT)
-            print("BILATERAL_COMBINATIONS: change\n");
-#    endif
+            dprint("BILATERAL_COMBINATIONS: change\n");
             unregister_mods(bilateral_combinations.mods);
             tap_code(bilateral_combinations.tap);
             bilateral_combinations.active = false;
