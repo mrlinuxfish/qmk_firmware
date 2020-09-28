@@ -330,7 +330,10 @@ void process_action(keyrecord_t *record, action_t action) {
                     send_keyboard_report();
                 }
 #ifdef BILATERAL_COMBINATIONS
-                bilateral_combinations_tap(event.key);
+                if (!(IS_MOD(action.key.code) || action.key.code == KC_NO)) {
+                    // regular keycode tap during mod-tap hold
+                    bilateral_combinations_tap(event.key);
+                }
 #endif
                 register_code(action.key.code);
             } else {
