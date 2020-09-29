@@ -240,7 +240,7 @@ static struct {
     bool left;
 } bilateral_combinations = { false };
 
-bool bilateral_combinations_left(keypos_t key) {
+static bool bilateral_combinations_left(keypos_t key) {
 #    ifdef SPLIT_KEYBOARD
     return key.row < MATRIX_ROWS / 2;
 #    else
@@ -252,7 +252,7 @@ bool bilateral_combinations_left(keypos_t key) {
 #    endif
 }
 
-void bilateral_combinations_hold(uint8_t code, uint8_t tap, uint8_t mods, keypos_t key) {
+static void bilateral_combinations_hold(uint8_t code, uint8_t tap, uint8_t mods, keypos_t key) {
     dprint("BILATERAL_COMBINATIONS: hold\n");
     bilateral_combinations.active = true;
     bilateral_combinations.code = code;
@@ -261,14 +261,14 @@ void bilateral_combinations_hold(uint8_t code, uint8_t tap, uint8_t mods, keypos
     bilateral_combinations.left = bilateral_combinations_left(key);
 }
 
-void bilateral_combinations_release(uint8_t code) {
+static void bilateral_combinations_release(uint8_t code) {
     dprint("BILATERAL_COMBINATIONS: release\n");
     if (bilateral_combinations.active && (code == bilateral_combinations.code)) {
         bilateral_combinations.active = false;
     }
 }
 
-void bilateral_combinations_tap(keypos_t key) {
+static void bilateral_combinations_tap(keypos_t key) {
     dprint("BILATERAL_COMBINATIONS: tap\n");
     if (bilateral_combinations.active) {
         if (bilateral_combinations_left(key) == bilateral_combinations.left) {
