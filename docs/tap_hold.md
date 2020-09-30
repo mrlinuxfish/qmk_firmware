@@ -200,7 +200,9 @@ bool get_retro_tapping(uint16_t keycode, keyrecord_t *record) {
 
 ## Bilateral Combinations
 
-Using mod tap on the home row can lead to accidental modifier combinations during normal typing.  If you only combine mods on one hand with taps on the opposite hand, this option can reduce accidental mods.  When this option is enabled, the last mod-tap hold will be converted to a mod-tap tap if another key on the same hand is tapped.
+The last mod-tap hold will be converted to a mod-tap tap if another key on the same hand is tapped.
+
+Using mod tap on the home row can lead to accidental modifier combinations during normal typing.  If you only combine mods on one hand with taps on the opposite hand, this option can reduce accidental mods.  As only the last mod-tap hold is affected, it should be enabled after adjusting settings and typing style so that accidental mods happen only occasionally, e.g. with a long enough tapping term, ignore mod tap interrupt, and deliberately brief keypresses.
 
 To enable bilateral combinations, add the following to your `config.h`:
 
@@ -208,10 +210,10 @@ To enable bilateral combinations, add the following to your `config.h`:
 #define BILATERAL_COMBINATIONS
 ```
 
-To monitor activations in the background, enable debugging, enable the console, enable terminal bell, add '#define DEBUG_ACTION' to 'config.h' and use something like the following shell command line:
+To monitor activations in the background, enable debugging, enable the console, enable terminal bell, add `#define DEBUG_ACTION` to `config.h`, and use something like the following shell command line:
 
 ```sh
-hid_listen | grep --line-buffered 'BILATERAL_COMBINATIONS: change' | while read line; do echo -e '\a'; done
+hid_listen | sed -u 's/BILATERAL_COMBINATIONS: change/&\a/g'
 ```
 
 ## Why do we include the key record for the per key functions?
