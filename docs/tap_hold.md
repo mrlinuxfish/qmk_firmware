@@ -200,14 +200,20 @@ bool get_retro_tapping(uint16_t keycode, keyrecord_t *record) {
 
 ## Bilateral Combinations
 
-The last mod-tap hold will be converted to a mod-tap tap if another key on the same hand is tapped.
+The last mod-tap hold will be converted to the corresponding mod-tap tap if another key on the same hand is tapped during the hold.
 
-Using mod tap on the home row can lead to accidental modifier combinations during normal typing.  If you only combine mods on one hand with taps on the opposite hand, this option can reduce accidental mods.  As only the last mod-tap hold is affected, it should be enabled after adjusting settings and typing style so that accidental mods happen only occasionally, e.g. with a long enough tapping term, ignore mod tap interrupt, and deliberately brief keypresses.
+This option can be used to prevent accidental modifier combinations with mod-tap, in particular those caused by rollover on home row mods.  As only the last mod-tap hold is affected, it should be enabled after adjusting settings and typing style so that accidental mods happen only occasionally, e.g. with a long enough tapping term, ignore mod tap interrupt, and deliberately brief keypresses.
 
 To enable bilateral combinations, add the following to your `config.h`:
 
 ```c
 #define BILATERAL_COMBINATIONS
+```
+
+If `BILATERAL_COMBINATIONS` is defined to a value, hold times greater than that value will permit same hand combinations.  For example:
+
+```c
+#define BILATERAL_COMBINATIONS 500
 ```
 
 To monitor activations in the background, enable debugging, enable the console, enable terminal bell, add `#define DEBUG_ACTION` to `config.h`, and use something like the following shell command line:
