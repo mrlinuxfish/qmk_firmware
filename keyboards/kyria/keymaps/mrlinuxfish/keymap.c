@@ -138,8 +138,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // Disabling permissive hold for home row mods.
 bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) { // {{{
     switch (keycode) {
-        case SHFT_T:
-        case SHFT_N:
+//        case SHFT_T:
+//        case SHFT_N:
         case SFT_ENT:
         case CTRL_S:
         case CTRL_E:
@@ -157,11 +157,14 @@ bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) { // {{{
     }
 }
 
-/* layer_state_t layer_state_set_user(layer_state_t state) {
- *     return update_tri_layer_state(state, _NSL, _FUNL, _ADJUST);
- * }
- */
-
+bool get_tapping_force_hold(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case NUM_BSC:
+            return false;
+        default:
+            return true;
+    }
+}
 
 #ifdef OLED_DRIVER_ENABLE
 // WPM-responsive animation stuff here
