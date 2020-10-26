@@ -295,8 +295,8 @@ static void bilateral_combinations_tap(keyevent_t event) {
             dprint("BILATERAL_COMBINATIONS: change\n");
             unregister_mods(bilateral_combinations.mods);
             tap_code(bilateral_combinations.tap);
-            bilateral_combinations.active = false;
         }
+        bilateral_combinations.active = false;
     }
 }
 #endif
