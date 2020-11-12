@@ -13,5 +13,5 @@
 //SUBS(pasta,       "I'd just like to interject for a moment.",       KC_H, KC_J, KC_K, KC_L)
 
 COMB(luBsbc,        KC_BSPC,        KC_L, KC_U)
-COMB(neBsbc,        KC_BSPC,        SHFT_N, CTRL_E)
+// COMB(neBsbc,        KC_BSPC,        SHFT_N, CTRL_E)
 COMB(stTab,        KC_TAB,        SHFT_T, CTRL_S)
