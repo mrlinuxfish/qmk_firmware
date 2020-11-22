@@ -46,7 +46,7 @@
   #define RGBLIGHT_SAT_STEP 8
   #define RGBLIGHT_VAL_STEP 8
   #define RGBLIGHT_SLEEP true  // turn off leds on sleep
-  #define RGBLIGHT_LIMIT_VAL 128 // Fix led brightness brownout issue
+  #define RGBLIGHT_LIMIT_VAL 150 // Fix led brightness brownout issue
 #endif
 
 // If you are using an Elite C rev3 on the slave side, uncomment the lines below:
