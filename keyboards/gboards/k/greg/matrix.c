@@ -60,7 +60,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DMASK     (COL11 | COL12)
 #define FMASK     (ROW2 | ROW3)
 #define RROWMASK  (RROW2 | RROW3)
-#define MCPMASK   (COL0 | COL1 | COL2 | COL3 | COL4 | COL5)
+#define MCPMASK   (COL1 | COL2 | COL3 | COL4 | COL5)
 
 /* matrix state(1:on, 0:off) */
 static matrix_row_t matrix[MATRIX_ROWS];
