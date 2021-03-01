@@ -50,9 +50,14 @@
 #endif
 
 // If you are using an Elite C rev3 on the slave side, uncomment the lines below:
-#define SPLIT_USB_DETECT
-#define SPLIT_USB_TIMEOUT 2500
-#define NO_USB_STARTUP_CHECK
+// #define SPLIT_USB_DETECT
+// #define NO_USB_STARTUP_CHECK
+
+// #define SPLIT_USB_TIMEOUT 2500
+
+// USB wakeup option allows both sides to initialize propperly when booting
+// EE_HANDS sets side of board in eeprom
+#define USB_SUSPEND_WAKEUP_DELAY 0
 #define EE_HANDS
 
 // Disable unnecessary features
