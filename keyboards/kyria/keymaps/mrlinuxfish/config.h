@@ -31,6 +31,9 @@
 #define TAPPING_FORCE_HOLD_PER_KEY
 #define BILATERAL_COMBINATIONS
 
+// Unicode support
+#define UNICODE_SELECTED_MODES UC_LNX
+
 // Recommended for heavy chording.
 #define QMK_KEYS_PER_SCAN 4
 
