@@ -35,3 +35,8 @@
 #define FN_DEL LT(_FUNL, KC_DEL)
 #define COLEMAK DF(_COLEMAK)
 #define GAME DF(_GAME)
+#define U_RDO KC_AGIN
+#define U_PST S(KC_INS)
+#define U_CPY C(KC_INS)
+#define U_CUT S(KC_DEL)
+#define U_UND KC_UNDO
