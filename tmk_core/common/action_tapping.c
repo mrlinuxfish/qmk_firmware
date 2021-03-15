@@ -35,6 +35,10 @@ __attribute__((weak)) bool get_tapping_force_hold(uint16_t keycode, keyrecord_t 
 __attribute__((weak)) bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) { return false; }
 #    endif
 
+#    ifdef RETRO_SHIFT
+#        include "quantum_keycodes.h"
+#    endif
+
 static keyrecord_t tapping_key                         = {};
 static keyrecord_t waiting_buffer[WAITING_BUFFER_SIZE] = {};
 static uint8_t     waiting_buffer_head                 = 0;
@@ -101,7 +105,16 @@ bool process_tapping(keyrecord_t *keyp) {
 
     // if tapping
     if (IS_TAPPING_PRESSED()) {
-        if (WITHIN_TAPPING_TERM(event)) {
+        if (WITHIN_TAPPING_TERM(event)
+#    if defined(RETRO_SHIFT) && !defined(NO_ACTION_TAPPING)
+            || (
+#        ifdef RETRO_TAPPING_PER_KEY
+                get_retro_tapping(get_event_keycode(tapping_key.event, false), keyp) &&
+#        endif
+                (RETRO_SHIFT + 0) != 0 && TIMER_DIFF_16(event.time, tapping_key.event.time) < (RETRO_SHIFT + 0)
+            )
+#    endif
+        ) {
             if (tapping_key.tap.count == 0) {
                 if (IS_TAPPING_KEY(event.key) && !event.pressed) {
                     // first tap!
@@ -119,13 +132,23 @@ bool process_tapping(keyrecord_t *keyp) {
                  * This can register the key before settlement of tapping,
                  * useful for long TAPPING_TERM but may prevent fast typing.
                  */
-#    if defined(TAPPING_TERM_PER_KEY) || (TAPPING_TERM >= 500) || defined(PERMISSIVE_HOLD) || defined(PERMISSIVE_HOLD_PER_KEY)
+#    if defined(TAPPING_TERM_PER_KEY) || (TAPPING_TERM >= 500) || defined(PERMISSIVE_HOLD) || defined(PERMISSIVE_HOLD_PER_KEY) || (defined(RETRO_SHIFT) && (defined(IGNORE_MOD_TAP_INTERRUPT) || defined(IGNORE_MOD_TAP_INTERRUPT_PER_KEY)))
                 else if (
 #        ifdef TAPPING_TERM_PER_KEY
                     (get_tapping_term(get_event_keycode(tapping_key.event, false), keyp) >= 500) &&
 #        endif
 #        ifdef PERMISSIVE_HOLD_PER_KEY
                     !get_permissive_hold(get_event_keycode(tapping_key.event, false), keyp) &&
+#        endif
+#        if defined(RETRO_SHIFT) && (defined(IGNORE_MOD_TAP_INTERRUPT) || defined(IGNORE_MOD_TAP_INTERRUPT_PER_KEY))
+#            ifdef RETRO_TAPPING_PER_KEY
+                    get_retro_tapping(keycode, record) &&
+#            endif
+#            ifdef IGNORE_MOD_TAP_INTERRUPT_PER_KEY
+                    get_ignore_mod_tap_interrupt(keycode, record) &&
+#            endif
+                    get_event_keycode(tapping_key.event, false) >= QK_MOD_TAP &&
+                    get_event_keycode(tapping_key.event, false) <= QK_MOD_TAP_MAX &&
 #        endif
                     IS_RELEASED(event) && waiting_buffer_typed(event)) {
                     debug("Tapping: End. No tap. Interfered by typing key\n");

@@ -30,16 +30,17 @@ with the shifted value as well if auto-repeat is disabled).
 
 Yes, unfortunately.
 
-You will have characters that are shifted when you did not intend on shifting, and
-other characters you wanted shifted, but were not. This simply comes down to
-practice. As we get in a hurry, we think we have hit the key long enough for a
-shifted version, but we did not. On the other hand, we may think we are tapping
-the keys, but really we have held it for a little longer than anticipated.
-
-Additionally, with keyrepeat the desired shift state can get mixed up. It will
-always 'belong' to the last key pressed. For example, keyrepeating a capital
-and then tapping something lowercase (whether or not it's an Auto Shift key)
-will result in the capital's *key* still being held, but shift not.
+1. You will have characters that are shifted when you did not intend on shifting, and
+   other characters you wanted shifted, but were not. This simply comes down to
+   practice. As we get in a hurry, we think we have hit the key long enough for a
+   shifted version, but we did not. On the other hand, we may think we are tapping
+   the keys, but really we have held it for a little longer than anticipated.
+2. Additionally, with keyrepeat the desired shift state can get mixed up. It will
+   always 'belong' to the last key pressed. For example, keyrepeating a capital
+   and then tapping something lowercase (whether or not it's an Auto Shift key)
+   will result in the capital's *key* still being held, but shift not.
+3. Auto Shift does not apply to Tap Hold keys. For automatic shifting of Tap Hold
+   keys see [Retro Shift](tap_hold.md#retro-shift).
 
 ## How Do I Enable Auto Shift?
 
@@ -116,6 +117,62 @@ Enables keyrepeat.
 ### AUTO_SHIFT_NO_AUTO_REPEAT (simple define)
 
 Disables automatically keyrepeating when `AUTO_SHIFT_TIMEOUT` is exceeded.
+
+### Custom Keys and Custom Shifted Values
+
+Especially on small keyboards, the default shifted value for many keys is not
+optimal. To provide more customizability, there are three user-definable
+functions. The first, `autoshift_is_custom`, is called on every key event and
+returns whether it should be a part of Auto Shift. The other two are
+`autoshift_press/release_user`, and press or release the passed key. If one
+does not require custom shift values but wants custom keys, only
+`autoshift_is_custom` is required. Below is an example adding period to Auto
+Shift and making its shifted value exclamation point. Make sure to use weak
+mods - setting real would make any keys following it use their shifted values
+as if you were holding the key. Clearing of modifiers is handled by Auto Shift,
+and the os-sent shift value if keyrepeating multiple keys is always that of
+the last key pressed (whether or not it's an Auto Shift key).
+
+You can also have non-shifted keys for the shifted values (or even no shifted
+value), just don't set a shift modifier!
+
+```c
+bool autoshift_is_custom(uint16_t keycode, keyrecord_t *record) {
+    switch(keycode) {
+        case KC_DOT:
+            break;
+        default:
+            return false;
+    }
+    return true;
+}
+void autoshift_press_user(uint16_t keycode, bool shifted, keyrecord_t *record) {
+    switch(keycode) {
+        case KC_DOT:
+            if (!shifted) {
+                register_code(KC_DOT);
+            } else {
+                add_weak_mods(MOD_BIT(KC_LSFT));
+                register_code(KC_1);
+            }
+        default:
+            if (shifted) {
+                add_weak_mods(MOD_BIT(KC_LSFT));
+            }
+            // & 0xFF gets the Tap key for Tap Holds, required when using Retro Shift
+            register_code(keycode & 0xFF);
+    }
+}
+void autoshift_release_user(uint16_t keycode, bool shifted, keyrecord_t *record) {
+    switch(keycode) {
+        case KC_DOT:
+            unregister_code((!shifted) ? KC_DOT : KC_1);
+        default:
+            // & 0xFF gets the Tap key for Tap Holds, required when using Retro Shift
+            unregister_code(keycode & 0xFF);
+    }
+}
+```
 
 ## Using Auto Shift Setup
 
