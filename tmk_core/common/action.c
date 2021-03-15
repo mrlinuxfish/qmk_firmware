@@ -48,7 +48,11 @@ int retro_tapping_counter = 0;
 #endif
 
 #ifdef FAUXCLICKY_ENABLE
-#    include "fauxclicky.h"
+#    include <fauxclicky.h>
+#endif
+
+#if (BILATERAL_COMBINATIONS + 0)
+#    include "quantum.h"
 #endif
 
 #ifdef IGNORE_MOD_TAP_INTERRUPT_PER_KEY
@@ -80,15 +84,10 @@ void action_exec(keyevent_t event) {
 #endif
     }
 
-#ifdef FAUXCLICKY_ENABLE
-    if (IS_PRESSED(event)) {
-        FAUXCLICKY_ACTION_PRESS;
+    if (event.pressed) {
+        // clear the potential weak mods left by previously pressed keys
+        clear_weak_mods();
     }
-    if (IS_RELEASED(event)) {
-        FAUXCLICKY_ACTION_RELEASE;
-    }
-    fauxclicky_check();
-#endif
 
 #ifdef SWAP_HANDS_ENABLE
     if (!IS_NOEVENT(event)) {
@@ -241,6 +240,68 @@ void register_button(bool pressed, enum mouse_buttons button) {
 }
 #endif
 
+#ifdef BILATERAL_COMBINATIONS
+static struct {
+    bool active;
+    uint8_t code;
+    uint8_t tap;
+    uint8_t mods;
+    bool left;
+#    if (BILATERAL_COMBINATIONS + 0)
+    uint16_t time;
+#    endif
+} bilateral_combinations = { false };
+
+static bool bilateral_combinations_left(keypos_t key) {
+#    ifdef SPLIT_KEYBOARD
+    return key.row < MATRIX_ROWS / 2;
+#    else
+    if (MATRIX_COLS > MATRIX_ROWS) {
+        return key.col < MATRIX_COLS / 2;
+    } else {
+        return key.row < MATRIX_ROWS / 2;
+    }
+#    endif
+}
+
+static void bilateral_combinations_hold(action_t action, keyevent_t event) {
+    dprint("BILATERAL_COMBINATIONS: hold\n");
+    bilateral_combinations.active = true;
+    bilateral_combinations.code = action.key.code;
+    bilateral_combinations.tap = action.layer_tap.code;
+    bilateral_combinations.mods = (action.kind.id == ACT_LMODS_TAP) ? action.key.mods : action.key.mods << 4;
+    bilateral_combinations.left = bilateral_combinations_left(event.key);
+#    if (BILATERAL_COMBINATIONS + 0)
+    bilateral_combinations.time = event.time;
+#    endif
+}
+
+static void bilateral_combinations_release(uint8_t code) {
+    dprint("BILATERAL_COMBINATIONS: release\n");
+    if (bilateral_combinations.active && (code == bilateral_combinations.code)) {
+        bilateral_combinations.active = false;
+    }
+}
+
+static void bilateral_combinations_tap(keyevent_t event) {
+    dprint("BILATERAL_COMBINATIONS: tap\n");
+    if (bilateral_combinations.active) {
+        if (bilateral_combinations_left(event.key) == bilateral_combinations.left) {
+#    if (BILATERAL_COMBINATIONS + 0)
+            if (TIMER_DIFF_16(event.time, bilateral_combinations.time) > BILATERAL_COMBINATIONS) {
+                dprint("BILATERAL_COMBINATIONS: timeout\n");
+                return;
+            }
+#    endif
+            dprint("BILATERAL_COMBINATIONS: change\n");
+            unregister_mods(bilateral_combinations.mods);
+            tap_code(bilateral_combinations.tap);
+        }
+        bilateral_combinations.active = false;
+    }
+}
+#endif
+
 /** \brief Take an action and processes it.
  *
  * FIXME: Needs documentation.
@@ -250,11 +311,6 @@ void process_action(keyrecord_t *record, action_t action) {
 #ifndef NO_ACTION_TAPPING
     uint8_t tap_count = record->tap.count;
 #endif
-
-    if (event.pressed) {
-        // clear the potential weak mods left by previously pressed keys
-        clear_weak_mods();
-    }
 
 #ifndef NO_ACTION_ONESHOT
     bool do_release_oneshot = false;
@@ -286,6 +342,12 @@ void process_action(keyrecord_t *record, action_t action) {
                     }
                     send_keyboard_report();
                 }
+#ifdef BILATERAL_COMBINATIONS
+                if (!(IS_MOD(action.key.code) || action.key.code == KC_NO)) {
+                    // regular keycode tap during mod-tap hold
+                    bilateral_combinations_tap(event);
+                }
+#endif
                 register_code(action.key.code);
             } else {
                 unregister_code(action.key.code);
@@ -373,12 +435,20 @@ void process_action(keyrecord_t *record, action_t action) {
                             } else
 #    endif
                             {
+#    ifdef BILATERAL_COMBINATIONS
+                                // mod-tap tap
+                                bilateral_combinations_tap(event);
+#    endif
                                 dprint("MODS_TAP: Tap: register_code\n");
                                 register_code(action.key.code);
                             }
                         } else {
                             dprint("MODS_TAP: No tap: add_mods\n");
                             register_mods(mods);
+#    ifdef BILATERAL_COMBINATIONS
+                            // mod-tap hold
+                            bilateral_combinations_hold(action, event);
+#    endif
                         }
                     } else {
                         if (tap_count > 0) {
@@ -392,6 +462,10 @@ void process_action(keyrecord_t *record, action_t action) {
                         } else {
                             dprint("MODS_TAP: No tap: add_mods\n");
                             unregister_mods(mods);
+#    ifdef BILATERAL_COMBINATIONS
+                            // mod-tap release
+                            bilateral_combinations_release(action.key.code);
+#    endif
                         }
                     }
                     break;
@@ -424,56 +498,22 @@ void process_action(keyrecord_t *record, action_t action) {
         case ACT_MOUSEKEY:
             if (event.pressed) {
                 mousekey_on(action.key.code);
-                switch (action.key.code) {
-#    if defined(PS2_MOUSE_ENABLE) || defined(POINTING_DEVICE_ENABLE)
-                    case KC_MS_BTN1:
-                        register_button(true, MOUSE_BTN1);
-                        break;
-                    case KC_MS_BTN2:
-                        register_button(true, MOUSE_BTN2);
-                        break;
-                    case KC_MS_BTN3:
-                        register_button(true, MOUSE_BTN3);
-                        break;
-#    endif
-#    ifdef POINTING_DEVICE_ENABLE
-                    case KC_MS_BTN4:
-                        register_button(true, MOUSE_BTN4);
-                        break;
-                    case KC_MS_BTN5:
-                        register_button(true, MOUSE_BTN5);
-                        break;
-#    endif
-                    default:
-                        mousekey_send();
-                        break;
-                }
             } else {
                 mousekey_off(action.key.code);
-                switch (action.key.code) {
+            }
+            switch (action.key.code) {
 #    if defined(PS2_MOUSE_ENABLE) || defined(POINTING_DEVICE_ENABLE)
-                    case KC_MS_BTN1:
-                        register_button(false, MOUSE_BTN1);
-                        break;
-                    case KC_MS_BTN2:
-                        register_button(false, MOUSE_BTN2);
-                        break;
-                    case KC_MS_BTN3:
-                        register_button(false, MOUSE_BTN3);
-                        break;
+#        ifdef POINTING_DEVICE_ENABLE
+                case KC_MS_BTN1 ... KC_MS_BTN8:
+#        else
+                case KC_MS_BTN1 ... KC_MS_BTN3:
+#        endif
+                    register_button(event.pressed, MOUSE_BTN_MASK(action.key.code - KC_MS_BTN1));
+                    break;
 #    endif
-#    ifdef POINTING_DEVICE_ENABLE
-                    case KC_MS_BTN4:
-                        register_button(false, MOUSE_BTN4);
-                        break;
-                    case KC_MS_BTN5:
-                        register_button(false, MOUSE_BTN5);
-                        break;
-#    endif
-                    default:
-                        mousekey_send();
-                        break;
-                }
+                default:
+                    mousekey_send();
+                    break;
             }
             break;
 #endif
@@ -599,6 +639,10 @@ void process_action(keyrecord_t *record, action_t action) {
                     /* tap key */
                     if (event.pressed) {
                         if (tap_count > 0) {
+#        ifdef BILATERAL_COMBINATIONS
+                            // layer-tap tap
+                            bilateral_combinations_tap(event);
+#        endif
                             dprint("KEYMAP_TAP_KEY: Tap: register_code\n");
                             register_code(action.layer_tap.code);
                         } else {
@@ -936,19 +980,24 @@ void unregister_code(uint8_t code) {
 #endif
 }
 
-/** \brief Utilities for actions. (FIXME: Needs better description)
+/** \brief Tap a keycode with a delay.
  *
- * FIXME: Needs documentation.
+ * \param code The basic keycode to tap.
+ * \param delay The amount of time in milliseconds to leave the keycode registered, before unregistering it.
  */
-void tap_code(uint8_t code) {
+void tap_code_delay(uint8_t code, uint16_t delay) {
     register_code(code);
-    if (code == KC_CAPS) {
-        wait_ms(TAP_HOLD_CAPS_DELAY);
-    } else {
-        wait_ms(TAP_CODE_DELAY);
+    for (uint16_t i = delay; i > 0; i--) {
+        wait_ms(1);
     }
     unregister_code(code);
 }
+
+/** \brief Tap a keycode with the default delay.
+ *
+ * \param code The basic keycode to tap. If `code` is `KC_CAPS`, the delay will be `TAP_HOLD_CAPS_DELAY`, otherwise `TAP_CODE_DELAY`, if defined.
+ */
+void tap_code(uint8_t code) { tap_code_delay(code, code == KC_CAPS ? TAP_HOLD_CAPS_DELAY : TAP_CODE_DELAY); }
 
 /** \brief Adds the given physically pressed modifiers and sends a keyboard report immediately.
  *
@@ -1017,16 +1066,16 @@ void clear_keyboard_but_mods(void) {
  * FIXME: Needs documentation.
  */
 void clear_keyboard_but_mods_and_keys() {
+#ifdef EXTRAKEY_ENABLE
+    host_system_send(0);
+    host_consumer_send(0);
+#endif
     clear_weak_mods();
     clear_macro_mods();
     send_keyboard_report();
 #ifdef MOUSEKEY_ENABLE
     mousekey_clear();
     mousekey_send();
-#endif
-#ifdef EXTRAKEY_ENABLE
-    host_system_send(0);
-    host_consumer_send(0);
 #endif
 }
 

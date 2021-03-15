@@ -87,7 +87,7 @@ To enable this setting, add this to your `config.h`:
 #define IGNORE_MOD_TAP_INTERRUPT
 ```
 
-Similar to Permissive Hold, this alters how the firmware processes inputs for fast typists. If you press a Mod Tap key, press another key, release the Mod Tap key, and then release the normal key, it would normally output the tapping function for both keys. This may not be desirable for rolling combo keys.
+Similar to Permissive Hold, this alters how the firmware processes inputs for fast typists. If you press a Mod Tap key, press another key, release the Mod Tap key, and then release the normal key, it would normally output the Mod plus the normal key, even if pressed within the `TAPPING_TERM`. This may not be desirable for rolling combo keys, or for fast typists who have a Mod Tap on a frequently used key (`RCTL_T(KC_QUOT)`, for example).
 
 Setting `Ignore Mod Tap Interrupt` requires  holding both keys for the `TAPPING_TERM` to trigger the hold function (the mod).
 
@@ -98,7 +98,7 @@ For Instance:
 - `SFT_T(KC_A)` Up
 - `KC_X` Up
 
-Normally, this would send `X` (`SHIFT`+`x`). With `Ignore Mod Tap Interrupt` enabled, holding both keys are required for the `TAPPING_TERM` to register the hold action. A quick tap will output `ax` in this case, while a hold on both will still output `X`  (`SHIFT`+`x`).
+Normally, this would send a capital `X` (`SHIFT`+`x`), or, Mod + key. With `Ignore Mod Tap Interrupt` enabled, holding both keys are required for the `TAPPING_TERM` to register the hold action. A quick tap will output `ax` in this case, while a hold on both will still output capital `X` (`SHIFT`+`x`).
 
 
 ?> __Note__: This only concerns modifiers and not layer switching keys.
@@ -196,6 +196,30 @@ bool get_retro_tapping(uint16_t keycode, keyrecord_t *record) {
             return false;
     }
 }
+```
+
+## Bilateral Combinations
+
+The last mod-tap hold will be converted to the corresponding mod-tap tap if another key on the same hand is tapped during the hold, unless a key on the other hand is tapped first.
+
+This option can be used to prevent accidental modifier combinations with mod-tap, in particular those caused by rollover on home row mods.  As only the last mod-tap hold is affected, it should be enabled after adjusting settings and typing style so that accidental mods happen only occasionally, e.g. with a long enough tapping term, ignore mod tap interrupt, and deliberately brief keypresses.
+
+To enable bilateral combinations, add the following to your `config.h`:
+
+```c
+#define BILATERAL_COMBINATIONS
+```
+
+If `BILATERAL_COMBINATIONS` is defined to a value, hold times greater than that value will permit same hand combinations.  For example:
+
+```c
+#define BILATERAL_COMBINATIONS 500
+```
+
+To monitor activations in the background, enable debugging, enable the console, enable terminal bell, add `#define DEBUG_ACTION` to `config.h`, and use something like the following shell command line:
+
+```sh
+hid_listen | sed -u 's/BILATERAL_COMBINATIONS: change/&\a/g'
 ```
 
 ## Why do we include the key record for the per key functions?
