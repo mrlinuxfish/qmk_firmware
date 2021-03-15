@@ -19,7 +19,10 @@
 #endif
 
 #include "keymap.h"
-#include <stdio.h>
+
+#ifdef OLED_DRIVER_ENABLE
+  #include <stdio.h>
+#endif
 
 #ifdef AUTO_SHIFT_ENABLE
   #include "process_auto_shift.h"
