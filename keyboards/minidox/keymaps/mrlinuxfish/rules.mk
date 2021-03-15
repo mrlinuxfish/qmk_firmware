@@ -11,6 +11,6 @@ UNICODE_ENABLE = yes # Add unicode support (emoji are currently not supported)
 # enabled at a time
 # AUTO_SHIFT_ENABLE = yes    # Turn on autoshift
 
-VPATH  +=  keyboards/gboards/
-EXTRAFLAGS=-DCOMBO_VARIABLE_LEN
-COMBO_ENABLE=yes
+# VPATH  +=  keyboards/gboards/
+# EXTRAFLAGS=-DCOMBO_VARIABLE_LEN
+# COMBO_ENABLE=yes
