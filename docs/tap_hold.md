@@ -198,6 +198,22 @@ bool get_retro_tapping(uint16_t keycode, keyrecord_t *record) {
 }
 ```
 
+## Bilateral Combinations
+
+Using mod tap on the home row can lead to accidental modifier combinations during normal typing.  If you only combine mods on one hand with taps on the opposite hand, this option can reduce accidental mods.  When this option is enabled, the last mod-tap hold will be converted to a mod-tap tap if another key on the same hand is tapped.
+
+To enable bilateral combinations, add the following to your `config.h`:
+
+```c
+#define BILATERAL_COMBINATIONS
+```
+
+To monitor activations in the background, add `#define BILATERAL_COMBINATIONS_DEBUG_EVENT` to `config.h`, enable the console, and use something like the following shell command line:
+
+```sh
+hid_listen | grep --line-buffered 'BILATERAL_COMBINATIONS: change' | while read line; do echo -e '\a'; notify-send "$line"; done
+```
+
 ## Why do we include the key record for the per key functions?
 
 One thing that you may notice is that we include the key record for all of the "per key" functions, and may be wondering why we do that.
