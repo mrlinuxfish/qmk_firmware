@@ -37,22 +37,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    include "nodebug.h"
 #endif
 
-int tp_buttons;
-
-#if defined RETRO_TAPPING || defined RETRO_SHIFT
-int retro_tapping_counter = 0;
+#ifdef POINTING_DEVICE_ENABLE
+#    include "pointing_device.h"
 #endif
 
-#ifdef RETRO_SHIFT
-#    include "quantum.h"
+int tp_buttons;
+
+#if defined(RETRO_TAPPING) || defined(RETRO_TAPPING_PER_KEY)
+int retro_tapping_counter = 0;
 #endif
 
 #ifdef FAUXCLICKY_ENABLE
 #    include <fauxclicky.h>
 #endif
 
+#if (BILATERAL_COMBINATIONS + 0)
+#    include "quantum.h"
+#endif
+
 #ifdef IGNORE_MOD_TAP_INTERRUPT_PER_KEY
 __attribute__((weak)) bool get_ignore_mod_tap_interrupt(uint16_t keycode, keyrecord_t *record) { return false; }
+#endif
+
+#ifdef RETRO_TAPPING_PER_KEY
+__attribute__((weak)) bool get_retro_tapping(uint16_t keycode, keyrecord_t *record) { return false; }
 #endif
 
 #ifndef TAP_CODE_DELAY
@@ -71,20 +79,15 @@ void action_exec(keyevent_t event) {
         dprint("EVENT: ");
         debug_event(event);
         dprintln();
-#if defined RETRO_TAPPING || defined RETRO_SHIFT
+#if defined(RETRO_TAPPING) || defined(RETRO_TAPPING_PER_KEY)
         retro_tapping_counter++;
 #endif
     }
 
-#ifdef FAUXCLICKY_ENABLE
-    if (IS_PRESSED(event)) {
-        FAUXCLICKY_ACTION_PRESS;
+    if (event.pressed) {
+        // clear the potential weak mods left by previously pressed keys
+        clear_weak_mods();
     }
-    if (IS_RELEASED(event)) {
-        FAUXCLICKY_ACTION_RELEASE;
-    }
-    fauxclicky_check();
-#endif
 
 #ifdef SWAP_HANDS_ENABLE
     if (!IS_NOEVENT(event)) {
@@ -224,6 +227,19 @@ void process_record_handler(keyrecord_t *record) {
     process_action(record, action);
 }
 
+#if defined(PS2_MOUSE_ENABLE) || defined(POINTING_DEVICE_ENABLE)
+void register_button(bool pressed, enum mouse_buttons button) {
+#    ifdef PS2_MOUSE_ENABLE
+    tp_buttons = pressed ? tp_buttons | button : tp_buttons & ~button;
+#    endif
+#    ifdef POINTING_DEVICE_ENABLE
+    report_mouse_t currentReport = pointing_device_get_report();
+    currentReport.buttons        = pressed ? currentReport.buttons | button : currentReport.buttons & ~button;
+    pointing_device_set_report(currentReport);
+#    endif
+}
+#endif
+
 #ifdef BILATERAL_COMBINATIONS
 static struct {
     bool active;
@@ -231,53 +247,57 @@ static struct {
     uint8_t tap;
     uint8_t mods;
     bool left;
+#    if (BILATERAL_COMBINATIONS + 0)
+    uint16_t time;
+#    endif
 } bilateral_combinations = { false };
 
-bool bilateral_combinations_left(keypos_t key) {
+static bool bilateral_combinations_left(keypos_t key) {
 #    ifdef SPLIT_KEYBOARD
     return key.row < MATRIX_ROWS / 2;
 #    else
     if (MATRIX_COLS > MATRIX_ROWS) {
-        return key.row < MATRIX_COLS / 2;
+        return key.col < MATRIX_COLS / 2;
     } else {
         return key.row < MATRIX_ROWS / 2;
     }
 #    endif
 }
 
-void bilateral_combinations_hold(uint8_t code, uint8_t tap, uint8_t mods, keypos_t key) {
-#    ifdef BILATERAL_COMBINATIONS_DEBUG_ALL
-    print("BILATERAL_COMBINATIONS: hold\n");
-#    endif
+static void bilateral_combinations_hold(action_t action, keyevent_t event) {
+    dprint("BILATERAL_COMBINATIONS: hold\n");
     bilateral_combinations.active = true;
-    bilateral_combinations.code = code;
-    bilateral_combinations.tap = tap;
-    bilateral_combinations.mods = mods;
-    bilateral_combinations.left = bilateral_combinations_left(key);
+    bilateral_combinations.code = action.key.code;
+    bilateral_combinations.tap = action.layer_tap.code;
+    bilateral_combinations.mods = (action.kind.id == ACT_LMODS_TAP) ? action.key.mods : action.key.mods << 4;
+    bilateral_combinations.left = bilateral_combinations_left(event.key);
+#    if (BILATERAL_COMBINATIONS + 0)
+    bilateral_combinations.time = event.time;
+#    endif
 }
 
-void bilateral_combinations_release(uint8_t code) {
-#    ifdef BILATERAL_COMBINATIONS_DEBUG_ALL
-    print("BILATERAL_COMBINATIONS: release\n");
-#    endif
+static void bilateral_combinations_release(uint8_t code) {
+    dprint("BILATERAL_COMBINATIONS: release\n");
     if (bilateral_combinations.active && (code == bilateral_combinations.code)) {
         bilateral_combinations.active = false;
     }
 }
 
-void bilateral_combinations_tap(keypos_t key) {
-#    ifdef BILATERAL_COMBINATIONS_DEBUG_ALL
-    print("BILATERAL_COMBINATIONS: tap\n");
-#    endif
+static void bilateral_combinations_tap(keyevent_t event) {
+    dprint("BILATERAL_COMBINATIONS: tap\n");
     if (bilateral_combinations.active) {
-        if (bilateral_combinations_left(key) == bilateral_combinations.left) {
-#    if defined (BILATERAL_COMBINATIONS_DEBUG_ALL) || defined (BILATERAL_COMBINATIONS_DEBUG_EVENT)
-            print("BILATERAL_COMBINATIONS: change\n");
+        if (bilateral_combinations_left(event.key) == bilateral_combinations.left) {
+#    if (BILATERAL_COMBINATIONS + 0)
+            if (TIMER_DIFF_16(event.time, bilateral_combinations.time) > BILATERAL_COMBINATIONS) {
+                dprint("BILATERAL_COMBINATIONS: timeout\n");
+                return;
+            }
 #    endif
+            dprint("BILATERAL_COMBINATIONS: change\n");
             unregister_mods(bilateral_combinations.mods);
             tap_code(bilateral_combinations.tap);
-            bilateral_combinations.active = false;
         }
+        bilateral_combinations.active = false;
     }
 }
 #endif
@@ -291,17 +311,6 @@ void process_action(keyrecord_t *record, action_t action) {
 #ifndef NO_ACTION_TAPPING
     uint8_t tap_count = record->tap.count;
 #endif
-#ifdef RETRO_SHIFT
-    static uint16_t retro_shift_start_time;
-#endif
-
-    if (event.pressed) {
-        // clear the potential weak mods left by previously pressed keys
-        clear_weak_mods();
-#ifdef RETRO_SHIFT
-        retro_shift_start_time = event.time;
-#endif
-    }
 
 #ifndef NO_ACTION_ONESHOT
     bool do_release_oneshot = false;
@@ -334,7 +343,10 @@ void process_action(keyrecord_t *record, action_t action) {
                     send_keyboard_report();
                 }
 #ifdef BILATERAL_COMBINATIONS
-                bilateral_combinations_tap(event.key);
+                if (!(IS_MOD(action.key.code) || action.key.code == KC_NO)) {
+                    // regular keycode tap during mod-tap hold
+                    bilateral_combinations_tap(event);
+                }
 #endif
                 register_code(action.key.code);
             } else {
@@ -424,7 +436,8 @@ void process_action(keyrecord_t *record, action_t action) {
 #    endif
                             {
 #    ifdef BILATERAL_COMBINATIONS
-                                bilateral_combinations_tap(event.key);
+                                // mod-tap tap
+                                bilateral_combinations_tap(event);
 #    endif
                                 dprint("MODS_TAP: Tap: register_code\n");
                                 register_code(action.key.code);
@@ -433,7 +446,8 @@ void process_action(keyrecord_t *record, action_t action) {
                             dprint("MODS_TAP: No tap: add_mods\n");
                             register_mods(mods);
 #    ifdef BILATERAL_COMBINATIONS
-                            bilateral_combinations_hold(action.key.code, action.layer_tap.code, mods, event.key);
+                            // mod-tap hold
+                            bilateral_combinations_hold(action, event);
 #    endif
                         }
                     } else {
@@ -449,6 +463,7 @@ void process_action(keyrecord_t *record, action_t action) {
                             dprint("MODS_TAP: No tap: add_mods\n");
                             unregister_mods(mods);
 #    ifdef BILATERAL_COMBINATIONS
+                            // mod-tap release
                             bilateral_combinations_release(action.key.code);
 #    endif
                         }
@@ -483,40 +498,22 @@ void process_action(keyrecord_t *record, action_t action) {
         case ACT_MOUSEKEY:
             if (event.pressed) {
                 mousekey_on(action.key.code);
-                switch (action.key.code) {
-#    ifdef PS2_MOUSE_ENABLE
-                    case KC_MS_BTN1:
-                        tp_buttons |= (1 << 0);
-                        break;
-                    case KC_MS_BTN2:
-                        tp_buttons |= (1 << 1);
-                        break;
-                    case KC_MS_BTN3:
-                        tp_buttons |= (1 << 2);
-                        break;
-#    endif
-                    default:
-                        mousekey_send();
-                        break;
-                }
             } else {
                 mousekey_off(action.key.code);
-                switch (action.key.code) {
-#    ifdef PS2_MOUSE_ENABLE
-                    case KC_MS_BTN1:
-                        tp_buttons &= ~(1 << 0);
-                        break;
-                    case KC_MS_BTN2:
-                        tp_buttons &= ~(1 << 1);
-                        break;
-                    case KC_MS_BTN3:
-                        tp_buttons &= ~(1 << 2);
-                        break;
+            }
+            switch (action.key.code) {
+#    if defined(PS2_MOUSE_ENABLE) || defined(POINTING_DEVICE_ENABLE)
+#        ifdef POINTING_DEVICE_ENABLE
+                case KC_MS_BTN1 ... KC_MS_BTN8:
+#        else
+                case KC_MS_BTN1 ... KC_MS_BTN3:
+#        endif
+                    register_button(event.pressed, MOUSE_BTN_MASK(action.key.code - KC_MS_BTN1));
+                    break;
 #    endif
-                    default:
-                        mousekey_send();
-                        break;
-                }
+                default:
+                    mousekey_send();
+                    break;
             }
             break;
 #endif
@@ -643,7 +640,8 @@ void process_action(keyrecord_t *record, action_t action) {
                     if (event.pressed) {
                         if (tap_count > 0) {
 #        ifdef BILATERAL_COMBINATIONS
-                            bilateral_combinations_tap(event.key);
+                            // layer-tap tap
+                            bilateral_combinations_tap(event);
 #        endif
                             dprint("KEYMAP_TAP_KEY: Tap: register_code\n");
                             register_code(action.layer_tap.code);
@@ -775,53 +773,24 @@ void process_action(keyrecord_t *record, action_t action) {
 #endif
 
 #ifndef NO_ACTION_TAPPING
-#    if defined RETRO_TAPPING || defined RETRO_SHIFT
+#    if defined(RETRO_TAPPING) || defined(RETRO_TAPPING_PER_KEY)
     if (!is_tap_action(action)) {
         retro_tapping_counter = 0;
     } else {
         if (event.pressed) {
             if (tap_count > 0) {
                 retro_tapping_counter = 0;
-            } else {
             }
         } else {
             if (tap_count > 0) {
                 retro_tapping_counter = 0;
             } else {
-                if (retro_tapping_counter == 2) {
-#        ifdef RETRO_SHIFT
-                    if(!(RETRO_SHIFT + 0) || TIMER_DIFF_16(event.time, retro_shift_start_time) < (RETRO_SHIFT + 0)){
-
-                        switch (action.layer_tap.code) {
-#            ifndef NO_AUTO_SHIFT_ALPHA
-                            case KC_A ... KC_Z:
-#            endif
-#            ifndef NO_AUTO_SHIFT_NUMERIC
-                            case KC_1 ... KC_0:
-#            endif
-#            ifndef NO_AUTO_SHIFT_SPECIAL
-                            case KC_TAB:
-                            case KC_MINUS ... KC_SLASH:
-                            case KC_NONUS_BSLASH:
-#            endif
-#            ifndef AUTO_SHIFT_MODIFIERS
-                                if (get_mods()) {
-                                    tap_code(action.layer_tap.code);
-                                    break;
-                                }
-#            endif
-                                tap_code16(LSFT(action.layer_tap.code));
-                                break;
-                            default:
-#            ifdef RETRO_TAPPING
-                                tap_code(action.layer_tap.code);
-#            endif
-                                ;
-                        }
-                    }
-#        else
-                    tap_code(action.layer_tap.code);
+                if (
+#        ifdef RETRO_TAPPING_PER_KEY
+                    get_retro_tapping(get_event_keycode(record->event, false), record) &&
 #        endif
+                    retro_tapping_counter == 2) {
+                    tap_code(action.layer_tap.code);
                 }
                 retro_tapping_counter = 0;
             }
@@ -1011,19 +980,24 @@ void unregister_code(uint8_t code) {
 #endif
 }
 
-/** \brief Utilities for actions. (FIXME: Needs better description)
+/** \brief Tap a keycode with a delay.
  *
- * FIXME: Needs documentation.
+ * \param code The basic keycode to tap.
+ * \param delay The amount of time in milliseconds to leave the keycode registered, before unregistering it.
  */
-void tap_code(uint8_t code) {
+void tap_code_delay(uint8_t code, uint16_t delay) {
     register_code(code);
-    if (code == KC_CAPS) {
-        wait_ms(TAP_HOLD_CAPS_DELAY);
-    } else {
-        wait_ms(TAP_CODE_DELAY);
+    for (uint16_t i = delay; i > 0; i--) {
+        wait_ms(1);
     }
     unregister_code(code);
 }
+
+/** \brief Tap a keycode with the default delay.
+ *
+ * \param code The basic keycode to tap. If `code` is `KC_CAPS`, the delay will be `TAP_HOLD_CAPS_DELAY`, otherwise `TAP_CODE_DELAY`, if defined.
+ */
+void tap_code(uint8_t code) { tap_code_delay(code, code == KC_CAPS ? TAP_HOLD_CAPS_DELAY : TAP_CODE_DELAY); }
 
 /** \brief Adds the given physically pressed modifiers and sends a keyboard report immediately.
  *
@@ -1092,16 +1066,16 @@ void clear_keyboard_but_mods(void) {
  * FIXME: Needs documentation.
  */
 void clear_keyboard_but_mods_and_keys() {
+#ifdef EXTRAKEY_ENABLE
+    host_system_send(0);
+    host_consumer_send(0);
+#endif
     clear_weak_mods();
     clear_macro_mods();
     send_keyboard_report();
 #ifdef MOUSEKEY_ENABLE
     mousekey_clear();
     mousekey_send();
-#endif
-#ifdef EXTRAKEY_ENABLE
-    host_system_send(0);
-    host_consumer_send(0);
 #endif
 }
 

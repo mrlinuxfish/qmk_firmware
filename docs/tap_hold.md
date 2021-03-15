@@ -47,7 +47,7 @@ As of [PR#1359](https://github.com/qmk/qmk_firmware/pull/1359/), there is a new 
 
 This makes tap and hold keys (like Mod Tap) work better for fast typists, or for high `TAPPING_TERM` settings.
 
-If you press a Mod Tap key, tap another key (press and release) and then release the Mod Tap key, all within the tapping term, it will output the "tapping" function for both keys.
+If you press a Mod Tap key, tap another key (press and release) and then release the Mod Tap key, all within the tapping term, it will output the tapping function for both keys.
 
 For Instance:
 
@@ -87,7 +87,7 @@ To enable this setting, add this to your `config.h`:
 #define IGNORE_MOD_TAP_INTERRUPT
 ```
 
-Similar to Permissive Hold, this alters how the firmware processes inputs for fast typists. If you press a Mod Tap key, press another key, release the Mod Tap key, and then release the normal key, it would normally output the "tapping" function for both keys. This may not be desirable for rolling combo keys.
+Similar to Permissive Hold, this alters how the firmware processes inputs for fast typists. If you press a Mod Tap key, press another key, release the Mod Tap key, and then release the normal key, it would normally output the Mod plus the normal key, even if pressed within the `TAPPING_TERM`. This may not be desirable for rolling combo keys, or for fast typists who have a Mod Tap on a frequently used key (`RCTL_T(KC_QUOT)`, for example).
 
 Setting `Ignore Mod Tap Interrupt` requires  holding both keys for the `TAPPING_TERM` to trigger the hold function (the mod).
 
@@ -98,7 +98,7 @@ For Instance:
 - `SFT_T(KC_A)` Up
 - `KC_X` Up
 
-Normally, this would send `X` (`SHIFT`+`x`). With `Ignore Mod Tap Interrupt` enabled, holding both keys are required for the `TAPPING_TERM` to register the hold action. A quick tap will output `ax` in this case, while a hold on both will still output `X`  (`SHIFT`+`x`).
+Normally, this would send a capital `X` (`SHIFT`+`x`), or, Mod + key. With `Ignore Mod Tap Interrupt` enabled, holding both keys are required for the `TAPPING_TERM` to register the hold action. A quick tap will output `ax` in this case, while a hold on both will still output capital `X` (`SHIFT`+`x`).
 
 
 ?> __Note__: This only concerns modifiers and not layer switching keys.
@@ -132,21 +132,21 @@ To enable `tapping force hold`, add the following to your `config.h`:
 #define TAPPING_FORCE_HOLD
 ```
 
-When the user holds a key after tap, this repeats the tapped key rather to hold a modifier key.  This allows to use auto repeat for the tapped key.
+When the user holds a key after tapping it, the tapping function is repeated by default, rather than activating the hold function. This allows keeping the ability to auto-repeat the tapping function of a dual-role key. `TAPPING_FORCE_HOLD` removes that ability to let the user activate the hold function instead, in the case of holding the dual-role key after having tapped it.
 
 Example:
 
-- SFT_T(KC_A) Down
-- SFT_T(KC_A) Up
-- SFT_T(KC_A) Down
-- wait more than tapping term...
-- SFT_T(KC_A) Up
+- `SFT_T(KC_A)` Down
+- `SFT_T(KC_A)` Up
+- `SFT_T(KC_A)` Down
+- wait until the tapping term expires...
+- `SFT_T(KC_A)` Up
 
 With default settings, `a` will be sent on the first release, then `a` will be sent on the second press allowing the computer to trigger its auto repeat function.
 
 With `TAPPING_FORCE_HOLD`, the second press will be interpreted as a Shift, allowing to use it as a modifier shortly after having used it as a tap.
 
-!> `TAPPING_FORCE_HOLD` will break anything that uses tapping toggles (Such as the `TT` layer keycode, and the One Shot Tapping Toggle).
+!> `TAPPING_FORCE_HOLD` will break anything that uses tapping toggles (Such as the `TT` layer keycode, and the One Shot Tap Toggle).
 
 For more granular control of this feature, you can add the following to your `config.h`:
 
@@ -179,29 +179,30 @@ Holding and releasing a dual function key without pressing another key will resu
 
 For instance, holding and releasing `LT(2, KC_SPACE)` without hitting another key will result in nothing happening. With this enabled, it will send `KC_SPACE` instead.
 
-## Retro Shift
-
-Holding and releasing a Tap Hold key without pressing another key will result in only the hold. With Retro Shift enabled this action will produce a shifted version of the tap keycode.
-
-This is a supplement to [Auto Shift](feature_auto_shift.md), which does not support Tap Hold.  Auto Shift is not required to be enabled, but for consistency it should be enabled and configured with the Auto Shift timeout matching the tapping term.  Retro Shift applies to the same tap keycodes as Auto Shift and uses the Auto Shift options `NO_AUTO_SHIFT_SPECIAL`, `NO_AUTO_SHIFT_NUMERIC`, `NO_AUTO_SHIFT_ALPHA`, and `AUTO_SHIFT_MODIFIERS` if defined.
-
-Retro Shift does not require [Retro Tapping](#retro-tapping) to be enabled, and if both are enabled Retro Tapping will only apply if the tap keycode is not matched by Retro Shift.
-
-To enable Retro Shift, add the following to your `config.h`:
+For more granular control of this feature, you can add the following to your `config.h`:
 
 ```c
-#define RETRO_SHIFT
+#define RETRO_TAPPING_PER_KEY
 ```
 
-If `RETRO_SHIFT` is defined to a value, hold times greater than that value will not produce a tap on release.  This enables modifiers to be held for combining with mouse clicks without generating taps on release.  For example:
+You can then add the following function to your keymap:
 
 ```c
-#define RETRO_SHIFT 500
+bool get_retro_tapping(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case LT(2, KC_SPACE):
+            return true;
+        default:
+            return false;
+    }
+}
 ```
 
 ## Bilateral Combinations
 
-Using mod tap on the home row can lead to accidental modifier combinations during normal typing.  If you only combine mods on one hand with taps on the opposite hand, this option can reduce accidental mods.  When this option is enabled, the last mod-tap hold will be converted to a mod-tap tap if another key on the same hand is tapped.
+The last mod-tap hold will be converted to the corresponding mod-tap tap if another key on the same hand is tapped during the hold, unless a key on the other hand is tapped first.
+
+This option can be used to prevent accidental modifier combinations with mod-tap, in particular those caused by rollover on home row mods.  As only the last mod-tap hold is affected, it should be enabled after adjusting settings and typing style so that accidental mods happen only occasionally, e.g. with a long enough tapping term, ignore mod tap interrupt, and deliberately brief keypresses.
 
 To enable bilateral combinations, add the following to your `config.h`:
 
@@ -209,17 +210,23 @@ To enable bilateral combinations, add the following to your `config.h`:
 #define BILATERAL_COMBINATIONS
 ```
 
-To monitor activations in the background, add `#define BILATERAL_COMBINATIONS_DEBUG_EVENT` to `config.h`, enable the console, and use something like the following shell command line:
+If `BILATERAL_COMBINATIONS` is defined to a value, hold times greater than that value will permit same hand combinations.  For example:
+
+```c
+#define BILATERAL_COMBINATIONS 500
+```
+
+To monitor activations in the background, enable debugging, enable the console, enable terminal bell, add `#define DEBUG_ACTION` to `config.h`, and use something like the following shell command line:
 
 ```sh
-hid_listen | grep --line-buffered 'BILATERAL_COMBINATIONS: change' | while read line; do echo -e '\a'; notify-send "$line"; done
+hid_listen | sed -u 's/BILATERAL_COMBINATIONS: change/&\a/g'
 ```
 
 ## Why do we include the key record for the per key functions?
 
 One thing that you may notice is that we include the key record for all of the "per key" functions, and may be wondering why we do that.
 
-Well, it's simply really: customization.  But specifically, it depends on how your keyboard is wired up.  For instance, if each row is actually using a row in the keyboard's matrix, then it may be simpler to use `if (record->event.row == 3)` instead of checking a whole bunch of keycodes.  Which is especially good for those people using the Tap Hold type keys on the home row. So you could fine tune those to not interfere with your normal typing.
+Well, it's simple really: customization.  But specifically, it depends on how your keyboard is wired up.  For instance, if each row is actually using a row in the keyboard's matrix, then it may be simpler to use `if (record->event.row == 3)` instead of checking a whole bunch of keycodes.  Which is especially good for those people using the Tap Hold type keys on the home row. So you could fine tune those to not interfere with your normal typing.
 
 ## Why is there no `*_kb` or `*_user` functions?!
 

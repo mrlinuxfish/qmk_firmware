@@ -1,23 +1,30 @@
-# 60_ansi_arrow and Keymap
+# 60_ansi_arrow Keymap
 
-## 60% ANSI Arrow Layout
+Default 60 ANSI Arrow Keymap by [Sendy YK](https://mr.sendyyk.com).
 
-![LAYOUT_60_ansi_arrow](https://raw.githubusercontent.com/mrsendyyk/my_qmk/master/dz60/assets/layout-60-ansi-arrow.png)
+```c
+    /*
+     * ┌───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───────┐
+     * │Esc│1  │2  │3  │4  │5  │6  │7  │8  │9  │0  │-  │+  │Bspc   │
+     * ├───┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─────┤
+     * │Tab  │Q  │W  │E  │R  │T  │Y  │U  │I  │O  │P  │[  │]  │\    │
+     * ├─────┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴─────┤
+     * │Caps  │A  │S  │D  │F  │G  │H  │J  │K  │L  │;  │'  │Enter   │
+     * ├──────┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴───┴┬───┬───┤
+     * │Shift   │Z  │X  │C  │V  │B  │N  │M  │,  │.  │Shift │↑  │/  │
+     * ├────┬───┴┬──┴─┬─┴───┴───┴───┴───┴───┴──┬┴──┬┴──┬───┼───┼───┤
+     * │Ctrl│GUI │Alt │Space                   │Alt│GUI│←  │↓  │→  │
+     * └────┴────┴────┴────────────────────────┴───┴───┴───┴───┴───┘
+     */
+```
 
-## Keymap
+## Build The Firmware
 
-### Default Layer
+Make example for keyboard (after setting up your build environment):
 
-![_BASE](https://raw.githubusercontent.com/mrsendyyk/my_qmk/master/dz60/assets/layout-60-ansi-arrow-keymap---layer-0.png)
+    make <keyboard_folder>:default_60_ansi_arrow
 
-### Fn Layer 1
-
-Press and hold *right* **Ctrl** key.
-
-![_FN](https://raw.githubusercontent.com/mrsendyyk/my_qmk/master/dz60/assets/layout-60-ansi-arrow-keymap---layer-1.png)
-
-### Fn Layer 2
-
-Press and hold *right* **Alt** key.
-
-![_SETTINGS](https://raw.githubusercontent.com/mrsendyyk/my_qmk/master/dz60/assets/layout-60-ansi-arrow-keymap---layer-2.png)
+More information:
+* [Setting Up Your QMK Environment](https://docs.qmk.fm/#/getting_started_build_tools)
+* [More Detailed make Instructions](https://docs.qmk.fm/#/getting_started_make_guide)
+* [The Complete Newbs Guide To QMK](https://docs.qmk.fm/#/newbs)
