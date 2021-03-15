@@ -7,6 +7,7 @@ EXTRAKEY_ENABLE = yes      # Audio control and System control
 WPM_ENABLE = no           # Allows the keyboard to display wpm
 UNICODE_ENABLE = yes # Add unicode support (emoji are currently not supported)
 BOOTLOADER = atmel-dfu
+CONSOLE_ENABLE = yes
 
 # Autoshift and combos do not play nicely with homerow mods. Only one should be
 # enabled at a time

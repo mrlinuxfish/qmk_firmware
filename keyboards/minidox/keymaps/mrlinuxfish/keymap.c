@@ -18,6 +18,10 @@
   #include "g/keymap_combo.h"
 #endif
 
+#ifdef CONSOLE_ENABLE
+  #include "print.h"
+#endif
+
 #include "keymap.h"
 
 #ifdef OLED_DRIVER_ENABLE
@@ -431,3 +435,16 @@ void encoder_update_user(uint8_t index, bool clockwise) {
     }
 }
 #endif
+
+// QMK heatmap by precondition https://precondition.github.io/qmk-heatmap
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    #ifdef CONSOLE_ENABLE
+        if (record->event.pressed) {
+            uprintf("0x%04X,%u,%u\n", keycode, record->event.key.row, record->event.key.col);
+        }
+    #endif
+    switch (keycode) {
+    ...
+    }
+    return true;
+}
