@@ -443,8 +443,5 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             uprintf("0x%04X,%u,%u\n", keycode, record->event.key.row, record->event.key.col);
         }
     #endif
-    switch (keycode) {
-    ...
-    }
     return true;
 }
