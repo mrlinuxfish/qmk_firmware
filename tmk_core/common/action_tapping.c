@@ -102,6 +102,9 @@ void action_tapping_process(keyrecord_t record) {
 /* return true when key event is processed or consumed. */
 bool process_tapping(keyrecord_t *keyp) {
     keyevent_t event = keyp->event;
+#    if defined(RETRO_SHIFT) || defined(TAPPING_TERM_PER_KEY) || defined(PERMISSIVE_HOLD_PER_KEY) || defined(IGNORE_MOD_TAP_INTERRUPT_PER_KEY) || defined(TAPPING_FORCE_HOLD_PER_KEY)
+    uint16_t keycode = get_event_keycode(tapping_key.event, false);
+#    endif
 
     // if tapping
     if (IS_TAPPING_PRESSED()) {
@@ -109,7 +112,7 @@ bool process_tapping(keyrecord_t *keyp) {
 #    if defined(RETRO_SHIFT) && !defined(NO_ACTION_TAPPING)
             || (
 #        ifdef RETRO_TAPPING_PER_KEY
-                get_retro_tapping(get_event_keycode(tapping_key.event, false), keyp) &&
+                get_retro_tapping(keycode, keyp) &&
 #        endif
                 (RETRO_SHIFT + 0) != 0 && TIMER_DIFF_16(event.time, tapping_key.event.time) < (RETRO_SHIFT + 0)
             )
@@ -132,23 +135,38 @@ bool process_tapping(keyrecord_t *keyp) {
                  * This can register the key before settlement of tapping,
                  * useful for long TAPPING_TERM but may prevent fast typing.
                  */
-#    if defined(TAPPING_TERM_PER_KEY) || (TAPPING_TERM >= 500) || defined(PERMISSIVE_HOLD) || defined(PERMISSIVE_HOLD_PER_KEY) || (defined(RETRO_SHIFT) && (defined(IGNORE_MOD_TAP_INTERRUPT) || defined(IGNORE_MOD_TAP_INTERRUPT_PER_KEY)))
+#    if defined(TAPPING_TERM_PER_KEY) || (TAPPING_TERM >= 500) || defined(PERMISSIVE_HOLD) || defined(PERMISSIVE_HOLD_PER_KEY) || defined(RETRO_SHIFT)
                 else if (
+#        ifdef RETRO_SHIFT
+                    ((
+#        endif
 #        ifdef TAPPING_TERM_PER_KEY
-                    (get_tapping_term(get_event_keycode(tapping_key.event, false), keyp) >= 500) &&
+                        (get_tapping_term(keycode, keyp) >= 500) &&
 #        endif
 #        ifdef PERMISSIVE_HOLD_PER_KEY
-                    !get_permissive_hold(get_event_keycode(tapping_key.event, false), keyp) &&
+                        !get_permissive_hold(keycode, keyp) &&
 #        endif
-#        if defined(RETRO_SHIFT) && (defined(IGNORE_MOD_TAP_INTERRUPT) || defined(IGNORE_MOD_TAP_INTERRUPT_PER_KEY))
+#        ifdef RETRO_SHIFT
+                    true) || (
 #            ifdef RETRO_TAPPING_PER_KEY
-                    get_retro_tapping(keycode, record) &&
+                        get_retro_tapping(keycode, keyp) &&
 #            endif
-#            ifdef IGNORE_MOD_TAP_INTERRUPT_PER_KEY
-                    get_ignore_mod_tap_interrupt(keycode, record) &&
+                        (
+                            (
+                                keycode >= QK_LAYER_TAP &&
+                                keycode <= QK_LAYER_TAP_MAX
+                            )
+#            if defined(IGNORE_MOD_TAP_INTERRUPT) || defined(IGNORE_MOD_TAP_INTERRUPT_PER_KEY)
+                            || (
+#                ifdef IGNORE_MOD_TAP_INTERRUPT_PER_KEY
+                                get_ignore_mod_tap_interrupt(keycode, keyp) &&
+#                endif
+                                keycode >= QK_MOD_TAP &&
+                                keycode <= QK_MOD_TAP_MAX
+                            )
 #            endif
-                    get_event_keycode(tapping_key.event, false) >= QK_MOD_TAP &&
-                    get_event_keycode(tapping_key.event, false) <= QK_MOD_TAP_MAX &&
+                        )
+                    )) &&
 #        endif
                     IS_RELEASED(event) && waiting_buffer_typed(event)) {
                     debug("Tapping: End. No tap. Interfered by typing key\n");
@@ -269,7 +287,7 @@ bool process_tapping(keyrecord_t *keyp) {
 #    if !defined(TAPPING_FORCE_HOLD) || defined(TAPPING_FORCE_HOLD_PER_KEY)
                     if (
 #        ifdef TAPPING_FORCE_HOLD_PER_KEY
-                        !get_tapping_force_hold(get_event_keycode(tapping_key.event, false), keyp) &&
+                        !get_tapping_force_hold(keycode, keyp) &&
 #        endif
                         !tapping_key.tap.interrupted && tapping_key.tap.count > 0) {
                         // sequential tap.
