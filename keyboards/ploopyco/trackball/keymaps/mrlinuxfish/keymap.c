@@ -31,8 +31,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 extern bool is_drag_scroll;
 
-__attribute__((weak)) layer_state_t layer_state_set_keymap(layer_state_t state) { return state; }
-
 layer_state_t layer_state_set_user(layer_state_t state) {
     static bool is_drag_on = false;
     if (layer_state_cmp(state, 1) != is_drag_on) {
@@ -43,5 +41,5 @@ layer_state_t layer_state_set_user(layer_state_t state) {
             is_drag_scroll = 0;
         }
     }
-    return layer_state_set_keymap(state);
+    return state;
 }
