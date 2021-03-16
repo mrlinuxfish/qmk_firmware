@@ -11,7 +11,7 @@ CONSOLE_ENABLE = yes
 
 # Autoshift and combos do not play nicely with homerow mods. Only one should be
 # enabled at a time
-AUTO_SHIFT_ENABLE = yes    # Turn on autoshift
+AUTO_SHIFT_ENABLE = no    # Turn on autoshift
 
 # VPATH  +=  keyboards/gboards/
 # EXTRAFLAGS=-DCOMBO_VARIABLE_LEN
