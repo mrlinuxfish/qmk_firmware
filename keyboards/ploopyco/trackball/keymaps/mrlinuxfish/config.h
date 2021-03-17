@@ -9,6 +9,4 @@
 // get around limitations of how fast scroll events
 // can be picked up
 #define OPT_SCALE 3
-
-// Reduce dragscroll speed so it's more manageable
-#define PLOOPY_DRAGSCROLL_FIXED 50
+#define OPT_DEBOUNCE 2

@@ -64,6 +64,7 @@ uint16_t lastMidClick      = 0;      // Stops scrollwheel from being read if it 
 uint8_t  OptLowPin         = OPT_ENC1;
 bool     debug_encoder     = false;
 bool     is_drag_scroll    = false;
+uint8_t  wheel_dpi         = 3;
 
 __attribute__((weak)) void process_wheel_user(report_mouse_t* mouse_report, int16_t h, int16_t v) {
     mouse_report->h = h;
@@ -99,7 +100,7 @@ __attribute__((weak)) void process_wheel(report_mouse_t* mouse_report) {
     uint8_t dir = opt_encoder_handler(p1, p2);
 
     if (dir == 0) return;
-    process_wheel_user(mouse_report, mouse_report->h, (int)(mouse_report->v + (dir * OPT_SCALE)));
+    process_wheel_user(mouse_report, mouse_report->h, (int)(mouse_report->v + (dir * wheel_dpi)));
 }
 
 __attribute__((weak)) void process_mouse_user(report_mouse_t* mouse_report, int16_t x, int16_t y) {
