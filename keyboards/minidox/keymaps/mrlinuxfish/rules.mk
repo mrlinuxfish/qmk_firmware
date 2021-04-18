@@ -1,7 +1,7 @@
 OLED_DRIVER_ENABLE = no   # Enables the use of OLED displays
 ENCODER_ENABLE = no       # ENables the use of one or more encoders
 RGBLIGHT_ENABLE = no      # Enable keyboard RGB underglow
-MOUSEKEY_ENABLE = no       # Mouse keys
+MOUSEKEY_ENABLE = yes       # Mouse keys
 EXTRAKEY_ENABLE = yes      # Audio control and System control
 # BOOTMAGIC_ENABLE = lite    # Bootmagic lite (only reset)
 WPM_ENABLE = no           # Allows the keyboard to display wpm
