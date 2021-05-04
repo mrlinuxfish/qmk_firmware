@@ -1,0 +1,8 @@
+// List any combo dictionaries you want loaded to
+// your device below!
+
+// Keyboard specific
+#include "ferris.def"
+
+// User includes
+//#include "linuxfish.def"
