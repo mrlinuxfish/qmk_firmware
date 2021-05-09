@@ -25,7 +25,13 @@ enum layers {
     _MOUR,
     _NSL,
     _FUNL,
-    _NSSL
+    _NSSL,
+    _PLOVER
+};
+
+enum keycodes {
+    PLOVER = SAFE_RANGE,
+    EXT_PLV
 };
 
 /* Add definitions for MT and LT */

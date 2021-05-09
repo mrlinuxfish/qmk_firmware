@@ -15,6 +15,7 @@
  */
 #include QMK_KEYBOARD_H
 #include "keymap.h"
+#include "keymap_steno.h"
 #include "g/keymap_combo.h"
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -44,7 +45,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
     [_MEDR] = LAYOUT( \
  //,--------------------------------------------.  ,--------------------------------------------.
-     _______,    GAME, COLEMAK, _______, _______,    _______, _______, _______, _______, _______,\
+     _______,    GAME, COLEMAK,  PLOVER, _______,    _______, _______, _______, _______, _______,\
  //|--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------|
      KC_LGUI, KC_LALT, KC_LCTL, KC_LSFT, _______,    _______, KC_MPRV, KC_VOLD, KC_VOLU, KC_MNXT,\
  //|--------+--------+--------+--------+--------.  ,-----------------+--------+--------+--------|
@@ -56,7 +57,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
     [_NAVR] = LAYOUT( \
  //,--------------------------------------------.  ,--------------------------------------------.
-     _______,    GAME, COLEMAK, _______, _______,    KC_AGIN, KC_UNDO,  KC_CUT, KC_COPY, KC_PSTE,\
+     _______,    GAME, COLEMAK,  PLOVER, _______,    KC_AGIN, KC_UNDO,  KC_CUT, KC_COPY, KC_PSTE,\
  //|--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------|
      KC_LGUI, KC_LALT, KC_LCTL, KC_LSFT, _______,    KC_CAPS, KC_LEFT, KC_DOWN,   KC_UP, KC_RGHT,\
  //|--------+--------+--------+--------+--------.  ,-----------------+--------+--------+--------|
@@ -113,6 +114,18 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                KC_SPC, UC(0x2014),    _______, _______ \
                             //`-----------------'  `-----------------'
     ),
+
+    [_PLOVER] = LAYOUT( \
+ //,--------------------------------------------.  ,--------------------------------------------.
+      STN_N1,  STN_N2,  STN_N3,  STN_N4, EXT_PLV,     STN_N6,  STN_N7,  STN_N8,  STN_N9,  STN_NA,\
+ //|--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------|
+      STN_S1,  STN_TL,  STN_PL,  STN_HL, STN_ST1,     STN_FR,  STN_PR,  STN_LR,  STN_TR,  STN_DR,\
+ //|--------+--------+--------+--------+--------.  ,--------+--------+--------+--------+--------|
+      STN_S2,  STN_KL,  STN_WL,  STN_RL, STN_ST2,     STN_RR,  STN_BR,  STN_GR,  STN_SR,  STN_ZR,\
+ //`-----------------+--------+--------+--------|  |--------+--------+--------+-----------------'
+                                  STN_A,   STN_O,      STN_E,   STN_U \
+                            //`-----------------'  `-----------------'
+    ),
 };
 
 // Disabling permissive hold for home row mods.
@@ -137,6 +150,9 @@ bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
     }
 }
 
+void matrix_init_user() {
+  steno_set_mode(STENO_MODE_GEMINI); // or STENO_MODE_BOLT
+}
 
 bool get_tapping_force_hold(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
@@ -145,4 +161,21 @@ bool get_tapping_force_hold(uint16_t keycode, keyrecord_t *record) {
         default:
             return true;
     }
+}
+
+// Layer change code for plover keycodes
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case PLOVER:
+            if (!record->event.pressed) {
+                layer_on(_PLOVER);
+            }
+        case EXT_PLV:
+            if (record->event.pressed) {
+                layer_off(_PLOVER);
+            }
+            return false;
+            break;
+    }
+    return true;
 }
