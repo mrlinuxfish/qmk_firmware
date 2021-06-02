@@ -53,6 +53,7 @@ const static float ADNS_X_TRANSFORM = -1.0;
 const static float ADNS_Y_TRANSFORM = 1.0;
 
 keyboard_config_t keyboard_config;
+
 uint16_t dpi_array[] = PLOOPY_DPI_OPTIONS;
 #define DPI_OPTION_SIZE (sizeof(dpi_array) / sizeof(uint16_t))
 
@@ -137,7 +138,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
 
 // Hardware Setup
 void keyboard_pre_init_kb(void) {
-    // debug_enable = true;
+    debug_enable = true;
     // debug_matrix = true;
     debug_mouse = true;
     // debug_encoder = true;
