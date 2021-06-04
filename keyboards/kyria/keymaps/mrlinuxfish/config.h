@@ -72,3 +72,4 @@
 // When using the default resolution of 4, if you notice your encoder skipping
 // every other tick, lower the resolution to 2.
 #define ENCODER_RESOLUTION 2
+#define ENCODER_DIRECTION_FLIP

@@ -45,7 +45,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  //|--------+--------+--------+--------+--------+--------+-----------------.  ,-----------------+--------+--------+--------+--------+--------+--------|
      KC_LSFT,    KC_Z,    KC_X,    KC_C,    KC_D,    KC_V, _______, _______,    KC_BTN1, KC_BTN2,    KC_K,    KC_H, KC_COMM, AGR_DOT, KC_SLSH, SFT_ENT,\
  //`--------------------------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------------------------'
-                                _______, _______, MED_ESC, NAV_SPC, MOS_TAB,    SYM_ENT, NUM_BSC,  FN_DEL, _______, KC_ESC \
+                                KC_MUTE, _______, MED_ESC, NAV_SPC, MOS_TAB,    SYM_ENT, NUM_BSC,  FN_DEL, _______, KC_ESC \
                             //`--------------------------------------------'  `--------------------------------------------'
     ),
 
@@ -414,17 +414,19 @@ void encoder_update_user(uint8_t index, bool clockwise) {
     if (index == 0) {
         // Scroll through active workspaces i3
         if (clockwise) {
-            tap_code16(G(C(S((KC_LEFT)))));
+            tap_code(KC_VOLU);
+            // tap_code16(G(C(S((KC_RGHT)))));
         } else {
-            tap_code16(G(C(S((KC_RGHT)))));
+            tap_code(KC_VOLD);
+            // tap_code16(G(C(S((KC_LEFT)))));
         }
     }
     else if (index == 1) {
         // Scroll through unread Discord channels
         if (clockwise) {
-            tap_code16(S(A(KC_DOWN)));
-        } else {
             tap_code16(S(A(KC_UP)));
+        } else {
+            tap_code16(S(A(KC_DOWN)));
         }
     }
 }
