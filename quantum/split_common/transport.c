@@ -22,6 +22,9 @@ static pin_t encoders_pad[] = ENCODERS_PAD_A;
 #    define NUMBER_OF_ENCODERS (sizeof(encoders_pad) / sizeof(pin_t))
 #endif
 
+#if defined(LED_MATRIX_ENABLE) && defined(LED_MATRIX_SPLIT)
+#    include "led_matrix.h"
+#endif
 #if defined(RGB_MATRIX_ENABLE) && defined(RGB_MATRIX_SPLIT)
 #    include "rgb_matrix.h"
 #endif
@@ -58,6 +61,10 @@ typedef struct _I2C_slave_buffer_t {
 #    ifdef WPM_ENABLE
     uint8_t current_wpm;
 #    endif
+#    if defined(LED_MATRIX_ENABLE) && defined(LED_MATRIX_SPLIT)
+    led_eeconfig_t led_matrix;
+    bool           led_suspend_state;
+#    endif
 #    if defined(RGB_MATRIX_ENABLE) && defined(RGB_MATRIX_SPLIT)
     rgb_config_t rgb_matrix;
     bool         rgb_suspend_state;
@@ -76,6 +83,8 @@ static I2C_slave_buffer_t *const i2c_buffer = (I2C_slave_buffer_t *)i2c_slave_re
 #    define I2C_RGB_START offsetof(I2C_slave_buffer_t, rgblight_sync)
 #    define I2C_ENCODER_START offsetof(I2C_slave_buffer_t, encoder_state)
 #    define I2C_WPM_START offsetof(I2C_slave_buffer_t, current_wpm)
+#    define I2C_LED_MATRIX_START offsetof(I2C_slave_buffer_t, led_matrix)
+#    define I2C_LED_SUSPEND_START offsetof(I2C_slave_buffer_t, led_suspend_state)
 #    define I2C_RGB_MATRIX_START offsetof(I2C_slave_buffer_t, rgb_matrix)
 #    define I2C_RGB_SUSPEND_START offsetof(I2C_slave_buffer_t, rgb_suspend_state)
 
@@ -151,9 +160,15 @@ bool transport_master(matrix_row_t master_matrix[], matrix_row_t slave_matrix[])
 #        endif
 #    endif
 
+#    if defined(LED_MATRIX_ENABLE) && defined(LED_MATRIX_SPLIT)
+    i2c_writeReg(SLAVE_I2C_ADDRESS, I2C_LED_MATRIX_START, (void *)led_matrix_eeconfig, sizeof(i2c_buffer->led_matrix), TIMEOUT);
+    bool suspend_state = led_matrix_get_suspend_state();
+    i2c_writeReg(SLAVE_I2C_ADDRESS, I2C_LED_SUSPEND_START, (void *)suspend_state, sizeof(i2c_buffer->led_suspend_state), TIMEOUT);
+#    endif
 #    if defined(RGB_MATRIX_ENABLE) && defined(RGB_MATRIX_SPLIT)
     i2c_writeReg(SLAVE_I2C_ADDRESS, I2C_RGB_MATRIX_START, (void *)rgb_matrix_config, sizeof(i2c_buffer->rgb_matrix), TIMEOUT);
-    i2c_writeReg(SLAVE_I2C_ADDRESS, I2C_RGB_SUSPEND_START, (void *)g_suspend_state, sizeof(i2c_buffer->rgb_suspend_state), TIMEOUT);
+    bool suspend_state = rgb_matrix_get_suspend_state();
+    i2c_writeReg(SLAVE_I2C_ADDRESS, I2C_RGB_SUSPEND_START, (void *)suspend_state, sizeof(i2c_buffer->rgb_suspend_state), TIMEOUT);
 #    endif
 
 #    ifndef DISABLE_SYNC_TIMER
@@ -202,9 +217,13 @@ void transport_slave(matrix_row_t master_matrix[], matrix_row_t slave_matrix[]) 
 #        endif
 #    endif
 
+#    if defined(LED_MATRIX_ENABLE) && defined(LED_MATRIX_SPLIT)
+    memcpy((void *)i2c_buffer->led_matrix, (void *)led_matrix_eeconfig, sizeof(i2c_buffer->led_matrix));
+    led_matrix_set_suspend_state(i2c_buffer->led_suspend_state);
+#    endif
 #    if defined(RGB_MATRIX_ENABLE) && defined(RGB_MATRIX_SPLIT)
     memcpy((void *)i2c_buffer->rgb_matrix, (void *)rgb_matrix_config, sizeof(i2c_buffer->rgb_matrix));
-    memcpy((void *)i2c_buffer->rgb_suspend_state, (void *)g_suspend_state, sizeof(i2c_buffer->rgb_suspend_state));
+    rgb_matrix_set_suspend_state(i2c_buffer->rgb_suspend_state);
 #    endif
 }
 
@@ -221,30 +240,34 @@ typedef struct _Serial_s2m_buffer_t {
     matrix_row_t smatrix[ROWS_PER_HAND];
 
 #    ifdef ENCODER_ENABLE
-    uint8_t      encoder_state[NUMBER_OF_ENCODERS];
+    uint8_t encoder_state[NUMBER_OF_ENCODERS];
 #    endif
 
 } Serial_s2m_buffer_t;
 
 typedef struct _Serial_m2s_buffer_t {
 #    ifdef SPLIT_MODS_ENABLE
-    uint8_t      real_mods;
-    uint8_t      weak_mods;
+    uint8_t real_mods;
+    uint8_t weak_mods;
 #        ifndef NO_ACTION_ONESHOT
-    uint8_t      oneshot_mods;
+    uint8_t oneshot_mods;
 #        endif
 #    endif
 #    ifndef DISABLE_SYNC_TIMER
-    uint32_t     sync_timer;
+    uint32_t sync_timer;
 #    endif
 #    ifdef SPLIT_TRANSPORT_MIRROR
     matrix_row_t mmatrix[ROWS_PER_HAND];
 #    endif
 #    ifdef BACKLIGHT_ENABLE
-    uint8_t      backlight_level;
+    uint8_t backlight_level;
 #    endif
 #    ifdef WPM_ENABLE
-    uint8_t      current_wpm;
+    uint8_t current_wpm;
+#    endif
+#    if defined(LED_MATRIX_ENABLE) && defined(LED_MATRIX_SPLIT)
+    led_eeconfig_t led_matrix;
+    bool           led_suspend_state;
 #    endif
 #    if defined(RGB_MATRIX_ENABLE) && defined(RGB_MATRIX_SPLIT)
     rgb_config_t rgb_matrix;
@@ -340,7 +363,7 @@ bool transport_master(matrix_row_t master_matrix[], matrix_row_t slave_matrix[])
 
     // TODO:  if MATRIX_COLS > 8 change to unpack()
     for (int i = 0; i < ROWS_PER_HAND; ++i) {
-        slave_matrix[i]              = serial_s2m_buffer.smatrix[i];
+        slave_matrix[i] = serial_s2m_buffer.smatrix[i];
 #    ifdef SPLIT_TRANSPORT_MIRROR
         serial_m2s_buffer.mmatrix[i] = master_matrix[i];
 #    endif
@@ -357,24 +380,28 @@ bool transport_master(matrix_row_t master_matrix[], matrix_row_t slave_matrix[])
 
 #    ifdef WPM_ENABLE
     // Write wpm to slave
-    serial_m2s_buffer.current_wpm       = get_current_wpm();
+    serial_m2s_buffer.current_wpm = get_current_wpm();
 #    endif
 
 #    ifdef SPLIT_MODS_ENABLE
-    serial_m2s_buffer.real_mods         = get_mods();
-    serial_m2s_buffer.weak_mods         = get_weak_mods();
+    serial_m2s_buffer.real_mods = get_mods();
+    serial_m2s_buffer.weak_mods = get_weak_mods();
 #        ifndef NO_ACTION_ONESHOT
-    serial_m2s_buffer.oneshot_mods      = get_oneshot_mods();
+    serial_m2s_buffer.oneshot_mods = get_oneshot_mods();
 #        endif
 #    endif
 
+#    if defined(LED_MATRIX_ENABLE) && defined(LED_MATRIX_SPLIT)
+    serial_m2s_buffer.led_matrix        = led_matrix_eeconfig;
+    serial_m2s_buffer.led_suspend_state = led_matrix_get_suspend_state();
+#    endif
 #    if defined(RGB_MATRIX_ENABLE) && defined(RGB_MATRIX_SPLIT)
     serial_m2s_buffer.rgb_matrix        = rgb_matrix_config;
-    serial_m2s_buffer.rgb_suspend_state = g_suspend_state;
+    serial_m2s_buffer.rgb_suspend_state = rgb_matrix_get_suspend_state();
 #    endif
 
 #    ifndef DISABLE_SYNC_TIMER
-    serial_m2s_buffer.sync_timer        = sync_timer_read32() + SYNC_TIMER_OFFSET;
+    serial_m2s_buffer.sync_timer = sync_timer_read32() + SYNC_TIMER_OFFSET;
 #    endif
     return true;
 }
@@ -389,7 +416,7 @@ void transport_slave(matrix_row_t master_matrix[], matrix_row_t slave_matrix[]) 
     for (int i = 0; i < ROWS_PER_HAND; ++i) {
         serial_s2m_buffer.smatrix[i] = slave_matrix[i];
 #    ifdef SPLIT_TRANSPORT_MIRROR
-        master_matrix[i]             = serial_m2s_buffer.mmatrix[i];
+        master_matrix[i] = serial_m2s_buffer.mmatrix[i];
 #    endif
     }
 #    ifdef BACKLIGHT_ENABLE
@@ -412,9 +439,13 @@ void transport_slave(matrix_row_t master_matrix[], matrix_row_t slave_matrix[]) 
 #        endif
 #    endif
 
+#    if defined(LED_MATRIX_ENABLE) && defined(LED_MATRIX_SPLIT)
+    led_matrix_eeconfig = serial_m2s_buffer.led_matrix;
+    led_matrix_set_suspend_state(serial_m2s_buffer.led_suspend_state);
+#    endif
 #    if defined(RGB_MATRIX_ENABLE) && defined(RGB_MATRIX_SPLIT)
     rgb_matrix_config = serial_m2s_buffer.rgb_matrix;
-    g_suspend_state   = serial_m2s_buffer.rgb_suspend_state;
+    rgb_matrix_set_suspend_state(serial_m2s_buffer.rgb_suspend_state);
 #    endif
 }
 

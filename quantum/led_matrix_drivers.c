@@ -46,16 +46,28 @@ static void init(void) {
 #        endif
 #    else
 #        ifdef LED_DRIVER_ADDR_1
-    IS31FL3733_init(LED_DRIVER_ADDR_1, 0);
+#            ifndef LED_DRIVER_SYNC_1
+#                define LED_DRIVER_SYNC_1 0
+#            endif
+    IS31FL3733_init(LED_DRIVER_ADDR_1, LED_DRIVER_SYNC_1);
 #        endif
 #        ifdef LED_DRIVER_ADDR_2
-    IS31FL3733_init(LED_DRIVER_ADDR_2, 0);
+#            ifndef LED_DRIVER_SYNC_2
+#                define LED_DRIVER_SYNC_2 0
+#            endif
+    IS31FL3733_init(LED_DRIVER_ADDR_2, LED_DRIVER_SYNC_2);
 #        endif
 #        ifdef LED_DRIVER_ADDR_3
-    IS31FL3733_init(LED_DRIVER_ADDR_3, 0);
+#            ifndef LED_DRIVER_SYNC_3
+#                define LED_DRIVER_SYNC_3 0
+#            endif
+    IS31FL3733_init(LED_DRIVER_ADDR_3, LED_DRIVER_SYNC_3);
 #        endif
 #        ifdef LED_DRIVER_ADDR_4
-    IS31FL3733_init(LED_DRIVER_ADDR_4, 0);
+#            ifndef LED_DRIVER_SYNC_4
+#                define LED_DRIVER_SYNC_4 0
+#            endif
+    IS31FL3733_init(LED_DRIVER_ADDR_4, LED_DRIVER_SYNC_4);
 #        endif
 #    endif
 
