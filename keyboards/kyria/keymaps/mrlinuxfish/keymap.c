@@ -19,7 +19,6 @@
 #endif
 
 #include "keymap.h"
-#include <stdio.h>
 
 #ifdef AUTO_SHIFT_ENABLE
   #include "process_auto_shift.h"
@@ -387,9 +386,23 @@ void oled_task_user(void) {
         render_status();
     } else {
         render_anim();
-        oled_set_cursor(7,6);
-        sprintf(wpm_str, "WPM: %03d", get_current_wpm());
-        oled_write(wpm_str, false);
+        uint8_t n = get_current_wpm();
+        char wpm_counter[4];
+        wpm_counter[3] = '\0';
+        wpm_counter[2] = '0' + n % 10;
+        wpm_counter[1] = ( n /= 10) % 10 ? '0' + (n) % 10 : (n / 10) % 10 ? '0' : ' ';
+        wpm_counter[0] = n / 10 ? '0' + n / 10 : ' ';
+        oled_set_cursor(0,6);
+        oled_write("       WPM:", false);
+        if (wpm_counter[0]==' ') {
+            if (wpm_counter[1]==' ') {
+                oled_write(&wpm_counter[2], false);
+            } else {
+                oled_write(&wpm_counter[1], false);
+            }
+        } else {
+            oled_write(&wpm_counter[0], false);
+        }
     }
 }
 #endif
