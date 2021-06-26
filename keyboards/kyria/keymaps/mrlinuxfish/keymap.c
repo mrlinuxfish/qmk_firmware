@@ -14,26 +14,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include QMK_KEYBOARD_H
+#include "keymap.h"
+#include "keymap_steno.h"
+
 #ifdef COMBO_ENABLE
   #include "g/keymap_combo.h"
 #endif
 
-#include "keymap.h"
-
 #ifdef AUTO_SHIFT_ENABLE
   #include "process_auto_shift.h"
 #endif
-
-enum layers {
-    _COLEMAK = 0,
-    _GAME,
-    _MEDR,
-    _NAVR,
-    _MOUR,
-    _NSSL,
-    _NSL,
-    _FUNL
-};
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_COLEMAK] = LAYOUT( \
@@ -62,7 +52,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
     [_MEDR] = LAYOUT( \
  //,-----------------------------------------------------.                                      ,-----------------------------------------------------.
-     _______, _______,    GAME, COLEMAK, KC_ASTG, _______,                                        RGB_TOG, RGB_MOD, RGB_HUI, RGB_SAI, RGB_VAI, _______,\
+     _______, _______,    GAME, COLEMAK, PLOVER, _______,                                        RGB_TOG, RGB_MOD, RGB_HUI, RGB_SAI, RGB_VAI, _______,\
  //|--------+--------+--------+--------+--------+--------|                                      |--------+--------+--------+--------+--------+--------|
      _______, KC_LGUI, KC_LALT, KC_LCTL, KC_LSFT, _______,                                        _______, KC_MPRV, KC_VOLD, KC_VOLU, KC_MNXT, _______,\
  //|--------+--------+--------+--------+--------+--------+-----------------.  ,-----------------+--------+--------+--------+--------+--------+--------|
@@ -130,6 +120,18 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      _______, KC_F10,  KC_F1,   KC_F2,   KC_F3,   KC_PAUS, _______, _______,    _______, _______, _______, _______, _______, KC_RALT, _______, _______,\
  //`--------------------------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------------------------'
                                 _______, _______, KC_APP, KC_SPC, UC(0x2014),   _______, _______, _______, _______, _______ \
+                            //`--------------------------------------------'  `--------------------------------------------'
+    ),
+
+    [_PLOVER] = LAYOUT( \
+ //,-----------------------------------------------------.                                      ,-----------------------------------------------------.
+      _______, STN_N1,  STN_N2,  STN_N3,  STN_N4, EXT_PLV,                                         STN_N6,  STN_N7,  STN_N8,  STN_N9,  STN_NA, _______,\
+ //|--------+--------+--------+--------+--------+--------|                                      |--------+--------+--------+--------+--------+--------|
+      _______, STN_S1,  STN_TL,  STN_PL,  STN_HL, STN_ST1,                                         STN_FR,  STN_PR,  STN_LR,  STN_TR,  STN_DR, _______,\
+ //|--------+--------+--------+--------+--------+--------+-----------------.  ,-----------------+--------+--------+--------+--------+--------+--------|
+      _______, STN_S2,  STN_KL,  STN_WL,  STN_RL, STN_ST2, _______, _______,    _______, _______,  STN_RR,  STN_BR,  STN_GR,  STN_SR,  STN_ZR, _______,\
+ //`--------------------------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------------------------'
+                                _______, EXT_PLV,  STN_N1,   STN_A,   STN_O,      STN_E,   STN_U,  STN_N1, _______, _______ \
                             //`--------------------------------------------'  `--------------------------------------------'
     ),
 };
@@ -369,6 +371,11 @@ static void render_status(void) {
         case _FUNL:
             oled_write_P(PSTR("Fn\n"), false);
             break;
+#ifdef STENO_ENABLE
+        case _PLOVER:
+            oled_write_P(PSTR("Steno"), false);
+            break;
+#endif
        default:
             oled_write_P(PSTR("Undefined\n"), false);
     }
@@ -444,3 +451,20 @@ void encoder_update_user(uint8_t index, bool clockwise) {
     }
 }
 #endif
+
+// Layer change code for plover keycodes
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case PLOVER:
+            if (!record->event.pressed) {
+                layer_on(_PLOVER);
+            }
+        case EXT_PLV:
+            if (record->event.pressed) {
+                layer_off(_PLOVER);
+            }
+            return false;
+            break;
+    }
+    return true;
+}

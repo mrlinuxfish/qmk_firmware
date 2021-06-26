@@ -13,7 +13,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+#pragma once
 #include QMK_KEYBOARD_H
+
+enum layers {
+    _COLEMAK = 0,
+    _GAME,
+    _MEDR,
+    _NAVR,
+    _MOUR,
+    _NSL,
+    _FUNL,
+    _NSSL,
+    _PLOVER
+};
+
+enum keycodes {
+    PLOVER = SAFE_RANGE,
+    EXT_PLV
+};
 
 /* Add definitions for MT and LT */
 #define SHFT_T MT(MOD_LSFT, KC_T)
