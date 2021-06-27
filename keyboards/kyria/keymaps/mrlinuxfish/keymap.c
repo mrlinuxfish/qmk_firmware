@@ -430,7 +430,7 @@ return state;
 #endif
 
 #ifdef ENCODER_ENABLE
-void encoder_update_user(uint8_t index, bool clockwise) {
+bool encoder_update_user(uint8_t index, bool clockwise) {
     if (index == 0) {
         // Scroll through active workspaces i3
         if (clockwise) {
@@ -449,6 +449,7 @@ void encoder_update_user(uint8_t index, bool clockwise) {
             tap_code16(S(A(KC_DOWN)));
         }
     }
+    return true;
 }
 #endif
 
