@@ -7,15 +7,17 @@
 #define VENDOR_ID       0xFEED
 #define PRODUCT_ID      0x6060
 #define DEVICE_VER      0x0001
-#define MANUFACTURER    qmkbuilder
-#define PRODUCT         keyboard
+#define MANUFACTURER    artsey
+#define PRODUCT         paintbrush
 #define DESCRIPTION     Keyboard
 
 /* key matrix size */
 #define MATRIX_ROWS 2
 #define MATRIX_COLS 4
 
-
+/* Bootmagic */
+#define BOOTMAGIC_LITE_ROW 0
+#define BOOTMAGIC_LITE_COLUMN 0
 
 /* COL2ROW or ROW2COL */
 #define DIODE_DIRECTION COL2ROW
