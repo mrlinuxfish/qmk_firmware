@@ -251,7 +251,6 @@ bool is_oneshot_ignored_key(uint16_t keycode) {
     case OS_GUI:
     case OS_TMUX:
     case OS_MISC:
-    case KC_LSFT:
         return true;
     default:
         return false;
@@ -334,11 +333,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             return false;
         case TM_SRCH:
             if (!record->event.pressed) return true;
-            SEND_STRING(TMUX_PREFIX "\t");
+            SEND_STRING(TMUX_PREFIX SS_DOWN(X_TAB) SS_UP(X_TAB));
             return false;
         case TM_URL:
             if (!record->event.pressed) return true;
-            SEND_STRING(TMUX_PREFIX SS_LCTL("u"));
+            SEND_STRING(TMUX_PREFIX SS_DOWN(X_LCTL) "u" SS_UP(X_LCTL));
             return false;
     }
     return true;
