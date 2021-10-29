@@ -1,0 +1,24 @@
+// Ferris Miryoku specfic combos
+
+#include "keymap.h"
+// base
+COMB(baseL,     MED_ESC,        NAV_SPC, MOS_TAB)
+COMB(baseR,     FN_DEL,         NUM_BSC, SYM_ENT)
+
+// Media
+COMB(media,     KC_MUTE,        KC_MSTP, KC_MPLY)
+
+// Nav
+COMB(nav,       KC_DEL,         KC_BSPC, KC_ENT)
+
+// Mouse
+COMB(mouse,     KC_BTN2,        KC_BTN3, KC_BTN1)
+
+// Sym
+COMB(sym,       KC_LPRN,        KC_UNDS, KC_RPRN)
+
+// Num
+COMB(num,       KC_DOT,         KC_MINS, KC_0)
+
+// Fn
+COMB(fn,        KC_APP,         KC_SPC, UC(0x2014))
