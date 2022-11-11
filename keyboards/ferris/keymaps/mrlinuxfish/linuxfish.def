@@ -1,0 +1,7 @@
+// MrLinuxFishs combos
+
+#include "keymap.h"
+
+COMB(luBsbc,        KC_BSPC,        KC_L, KC_U)
+// COMB(neBsbc,        KC_BSPC,        SHFT_N, CTRL_E)
+// COMB(stTab,        KC_TAB,        SHFT_T, CTRL_S)
