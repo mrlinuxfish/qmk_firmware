@@ -2,11 +2,42 @@
 
 #include "keymap.h"
 // Thumb Combo (Emulates tertiary thumb on combo)
+// Base
 COMB(baseL,     MED_ESC,        NAV_SPC, MOS_TAB)
 COMB(baseR,     FN_DEL,         NUM_BSC, SYM_ENT)
 
+// Media
+COMB(media,     KC_MUTE,        KC_MSTP, KC_MPLY)
+// Nav
+COMB(nav,       KC_DEL,         KC_BSPC, KC_ENT)
+// Mouse
+COMB(mouse,     KC_BTN2,        KC_BTN3, KC_BTN1)
+
+// Sym
+COMB(sym,       KC_LPRN,        KC_UNDS, KC_RPRN)
+// Num
+COMB(num,       KC_DOT,         KC_MINS, KC_0)
+// Fn
+COMB(fn,        KC_APP,         KC_SPC, UC(0x2014))
+
 // Bottom Row Klugge (Emulates z,v,k,/ using two adjacent bottom row keys)
-COMB(z,        KC_Z,           KC_X,   KC_C)
-COMB(v,        KC_V,           KC_C,   KC_D)
-COMB(k,        KC_K,           KC_H,   KC_COMM)
-COMB(sls,      KC_SLSH,        KC_COMM, KC_DOT)
+// Base
+COMB(z,         KC_Z,           KC_X,   KC_C)
+COMB(v,         KC_V,           KC_C,   KC_D)
+COMB(k,         KC_K,           KC_H,   KC_COMM)
+COMB(sls,       KC_SLSH,        KC_COMM, AGR_DOT)
+
+// Nav
+COMB(navz,      KC_END,         KC_PGDN, KC_PGUP)
+// Mouse
+COMB(mousls,    KC_WH_R,        KC_WH_D, KC_WH_U)
+
+// Sym
+COMB(symz,      KC_TILD,        KC_EXLM, KC_AT)
+COMB(symv,    KC_PIPE,        KC_AT, KC_HASH)
+// Num
+COMB(numz,      KC_GRV,         KC_1,   KC_2)
+COMB(numv,      KC_BSLS,        KC_2,   KC_3)
+// Fn
+COMB(fnz,       KC_F10,         KC_F1,  KC_F2)
+COMB(fnv,       KC_PAUS,        KC_F2,  KC_F3)

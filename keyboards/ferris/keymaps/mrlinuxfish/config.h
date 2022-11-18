@@ -18,8 +18,6 @@
 
 #define COMBO_ALLOW_ACTION_KEYS
 #define COMBO_PERMISSIVE_HOLD
-#define COMBO_ONLY_FROM_LAYER 0 //Enable positional combos
-
 
 // Fix problems with fast typing and homerow mods
 #define TAPPING_TERM 125
